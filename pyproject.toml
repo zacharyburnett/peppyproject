@@ -1,0 +1,41 @@
+[project]
+name = 'peppyproject'
+description = ''
+readme = 'README.md'
+requires-python = '>=3.7'
+license = { file = 'LICENSE' }
+authors = [{ name = 'Zach Burnett' }]
+classifiers = []
+dependencies = []
+dynamic = ['version']
+
+[project.optional-dependencies]
+test = [
+    'pytest',
+]
+
+[project.urls]
+'repository' = 'https://github.com/zacharyburnett/peppyproject'
+
+[project.scripts]
+peppyproject = 'peppyproject.__main__:main'
+
+[build-system]
+requires = [
+    'setuptools >=61',
+    'setuptools_scm[toml] >=3.4',
+    'wheel',
+]
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools_scm]
+
+[tool.ruff]
+extend-ignore = []
+extend-exclude = [
+    'build',
+    'docs',
+    '.eggs',
+    '.tox',
+    'venv',
+]
