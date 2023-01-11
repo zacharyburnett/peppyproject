@@ -1,69 +1,62 @@
-from configparser import ConfigParser
 from os import PathLike
 from pathlib import Path
-from typing import List, Dict, Union, Any, Mapping
+from typing import Mapping, Iterator
 
-import tomli as tomli
-import typepigeon as typepigeon
-
-PEP621 = {
-    'name': str,
-    'version': str,
-    'description': str,
-    'readme': Union[str, Dict[str, str]],
-    'requires-python': str,
-    'license': Dict[str, str],
-    'authors': List[Dict[str, str]],
-    'keywords': List[str],
-    'classifiers': List[str],
-    'urls': Dict[str, str],
-    'scripts': Dict[str, str],
-    'gui-scripts': Dict[str, str],
-    'entry-points': Dict[str, Dict[str, str]],
-    'dependencies': List[str],
-    'optional-dependencies': Dict[str, List[str]],
-    'dynamic': List[str],
-}
+from peppyproject.tables import (
+    ConfigurationTable,
+    ProjectMetadata,
+    BuildConfiguration,
+    ToolTable,
+)
 
 
-class ProjectConfiguration:
+class PyProjectConfiguration(Mapping):
     """
-    PEP621 configuration metadata
+    abstraction of ``pyproject.toml`` configuration
     """
 
-    def __init__(self):
-        self.__configuration = {
-            'project': {key: {} for key in PEP621},
-            'tool': {},
+    def __init__(
+            self,
+            project: ProjectMetadata = None,
+            build_system: BuildConfiguration = None,
+            tool: ToolTable = None,
+    ):
+        if project is None:
+            project = ProjectMetadata()
+        if build_system is None:
+            build_system = BuildConfiguration()
+        if tool is None:
+            tool = ToolTable()
+        self.__tables = {
+            "project": project,
+            "build-system": build_system,
+            "tool": tool,
         }
 
     @classmethod
-    def from_file(cls, filename: PathLike) -> 'ProjectConfiguration':
-        if not isinstance(filename, Path):
-            filename = Path(filename)
+    def from_directory(cls, directory: PathLike) -> "PyProjectConfiguration":
+        if not isinstance(directory, Path):
+            directory = Path(directory)
 
-        configuration = cls()
-        if filename.name.lower() == 'pyproject.toml':
-            with open(filename, 'rb') as configuration_file:
-                configuration.update(tomli.load(configuration_file))
-        elif filename.name.lower() == 'setup.cfg':
-            parser = ConfigParser()
-            parser.read([filename])
-            dict(parser.items('metadata'))
-        elif filename.name.lower() == 'setup.py':
-            with open(filename) as configuration_file:
-                pass
+        return cls(
+            project=ProjectMetadata.from_directory(directory=directory),
+            build_system=BuildConfiguration.from_directory(directory=directory),
+            tool=ToolTable.from_directory(directory=directory),
+        )
 
-        return
+    def __getitem__(self, table: str) -> ConfigurationTable:
+        return self.__tables[table]
 
-    def __getitem__(self, key: str) -> Any:
-        pass
+    def __len__(self) -> int:
+        return len(self.__tables)
 
-    def __setitem__(self, key: str, value: Any):
-        pass
+    def __iter__(self) -> Iterator:
+        yield from self.__tables
 
-    def update(self, items: Mapping):
-        for table_name, table in items:
-            if table_name == 'project':
-                for key, value in table.items():
-                    self[key] = typepigeon.convert_value(value, PEP621[key])
+    def __repr__(self) -> str:
+        tables_string = ", ".join(
+            f"{key}={repr(value)}"
+            for key, value in self.__tables.items()
+            if value is not None
+        )
+        return f"{self.__class__.__name__}({tables_string})"

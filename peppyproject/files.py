@@ -1,8 +1,169 @@
+# https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#compatibility-with-other-tools
+import ast
+import re
+import warnings
+from os import PathLike
+from pathlib import Path
+from typing import List, Tuple, Dict, Any
+
 SETUP_CFG = {
-    'metadata': {
-
+    "metadata": {
+        "name": "project.name",
+        "version": "project.version",
+        "description": "project.description",
+        "long_description": "project.readme",
+        "keywords": "project.keywords",
+        "license": "project.license",
+        "classifiers": "project.classifiers",
     },
-    'options': {
-
+    "options": {
+        "zip_safe": "tool.setuptools.zip-safe",
+        "include_package_data": "tool.setuptools.include-package-data",
+        "packages": "tool.setuptools.packages",
+        "install_requires": "project.dependencies",
+        "setup_requires": "build-system.requires",
+        "package_data": "tool.setuptools.package-data",
+        "package_dir": "tool.setuptools.package-dir",
+        "entry_points": "project.entry-points",
+        "extras_require": "project.optional-dependencies",
     },
 }
+
+CONTINUING_CHARACTERS = ["\\", ",", "(", "{", "["]
+ENDING_CHARACTERS = [")", "}", "]"]
+
+
+def python_statement(
+    lines: List[str],
+    index: int = 0,
+    current_statement: str = None,
+    statements: List[str] = None,
+) -> Tuple[List[str], int]:
+    if current_statement is None:
+        current_statement = ""
+
+    if statements is None:
+        statements = []
+
+    # read line
+    line = lines[index]
+
+    # remove comments; TODO: handle `#` in strings / comment
+    line = line.rsplit("#", 1)[0].strip()
+
+    # increment line index
+    index += 1
+
+    # check if line continues
+    if any(
+        line.endswith(continuing_character)
+        for continuing_character in CONTINUING_CHARACTERS
+    ):
+        statements, index = python_statement(
+            lines=lines,
+            index=index,
+            current_statement=current_statement,
+            statements=statements,
+        )
+        current_statement += line.rstrip("\\")
+        if len(current_statement) > 0:
+            current_statement += " "
+        current_statement += statements.pop()
+    elif len(line) == 0:
+        pass
+    else:
+        current_statement += line
+
+    if any(line.endswith(ending_character) for ending_character in ENDING_CHARACTERS):
+        statements[-1] += current_statement
+    else:
+        statements.extend(current_statement.split(";"))
+
+    return statements, index
+
+
+def read_python_file(filename: PathLike) -> List[str]:
+    if not isinstance(filename, Path):
+        filename = Path(filename)
+
+    with open(filename) as script_file:
+        lines = script_file.readlines()
+
+    statements = []
+    index = 0
+    while index < len(lines):
+        statements, index = python_statement(
+            lines=lines, index=index, statements=statements
+        )
+
+    statements = [statement for statement in statements if len(statement) > 0]
+
+    indices = []
+    for index, statement in reversed(list(enumerate(statements))):
+        if any(
+            statement.strip().endswith(continuing_character)
+            for continuing_character in CONTINUING_CHARACTERS
+        ):
+            statements[index] += statements[index + 1]
+            indices.append(index + 1)
+
+    for index in indices:
+        statements.pop(index)
+
+    return statements
+
+
+def read_setup_py(filename: PathLike) -> Dict[str, Any]:
+    statements = read_python_file(filename)
+
+    setup_parameters = {}
+    setup_calls = {
+        index: statement
+        for index, statement in enumerate(statements)
+        if "setup(" in statement
+    }
+
+    if len(setup_calls) > 0:
+        if len(setup_calls) > 1:
+            warnings.warn(f"multiple setup calls found; {setup_calls}")
+        setup_call_index, setup_call = next(reversed(setup_calls.items()))
+
+        statements.pop(setup_call_index)
+
+        variables = {}
+        for statement in statements:
+            if "=" in statement:
+                name, value = statement.strip().split("=", 1)
+                for variable in variables:
+                    if variable in value:
+                        value = value.replace(variable, repr(variables[variable]))
+                for glob_pattern in re.findall("glob.glob\((.+)\)", value):
+                    value = value.replace(f"glob.glob({glob_pattern})", glob_pattern)
+                try:
+                    value = ast.literal_eval(value.strip())
+                except:
+                    pass
+                variables[name.strip()] = value
+
+        parameters = re.findall(
+            "(.+?=[^=]+),", setup_call.split("setup(", 1)[-1].rsplit(")", 1)[0]
+        )
+        for parameter in parameters:
+            name, value = parameter.strip().split("=", 1)
+            if "open(" in value:
+                value = re.findall("open\((.+?)\).read\(\)", value)[0]
+
+            for variable in variables:
+                if variable in value:
+                    value = value.replace(variable, repr(variables[variable]))
+
+            value = re.sub("\]\s*\+\s*\[", ",", value)
+
+            try:
+                value = ast.literal_eval(value)
+            except:
+                pass
+
+            setup_parameters[name] = value
+
+    return setup_parameters

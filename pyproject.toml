@@ -6,7 +6,9 @@ requires-python = '>=3.7'
 license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
 classifiers = []
-dependencies = []
+dependencies = [
+    'typepigeon>=2.0.0',
+]
 dynamic = ['version']
 
 [project.optional-dependencies]
