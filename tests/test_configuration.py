@@ -12,13 +12,20 @@ def test_pyproject_configuration_pyproject_toml():
 
     assert len(configuration["project"]) == 13
     assert len(configuration["build-system"]) == 2
-    assert len(configuration['tool']) == 3
+    assert len(configuration["tool"]) == 4
     assert len(configuration["tool"]["setuptools"]) == 3
+
+    assert list(configuration["tool"]) == [
+        "setuptools_scm",
+        "setuptools",
+        "pytest",
+        "coverage",
+    ]
 
     assert configuration["project"]["name"] == "romancal"
     assert (
-            configuration["project"]["description"]
-            == "Library for calibration of science observations from the Nancy Grace Roman Space Telescope"
+        configuration["project"]["description"]
+        == "Library for calibration of science observations from the Nancy Grace Roman Space Telescope"
     )
     assert configuration["project"]["readme"] == "README.md"
     assert configuration["project"]["requires-python"] == ">=3.8"
@@ -91,10 +98,19 @@ def test_pyproject_configuration_pyproject_toml():
     ]
     assert configuration["build-system"]["build-backend"] == "setuptools.build_meta"
 
-    assert configuration['tool']['setuptools']['zip-safe'] is False
-    assert configuration['tool']['setuptools']['packages'] == {'find': {}}
-    assert configuration['tool']['setuptools']['package-data'] == {
-        '*': ['*.fits', '*.txt', '*.inc', '*.cfg', '*.csv', '*.yaml', '*.json', '*.asdf'],
+    assert configuration["tool"]["setuptools"]["zip-safe"] is False
+    assert configuration["tool"]["setuptools"]["packages"] == {"find": {}}
+    assert configuration["tool"]["setuptools"]["package-data"] == {
+        "*": [
+            "*.fits",
+            "*.txt",
+            "*.inc",
+            "*.cfg",
+            "*.csv",
+            "*.yaml",
+            "*.json",
+            "*.asdf",
+        ],
     }
 
 
@@ -103,15 +119,23 @@ def test_pyproject_configuration_setup_cfg():
         TEST_DIRECTORY / "input" / "jwst"
     )
 
-    assert len(configuration["project"]) == 7
+    assert len(configuration["project"]) == 8
     assert len(configuration["build-system"]) == 2
-    assert len(configuration['tool']) == 1
-    assert len(configuration['tool']['setuptools']) == 0
+    assert len(configuration["tool"]) == 5
+    assert len(configuration["tool"]["setuptools"]) == 2
+
+    assert list(configuration["tool"]) == [
+        "setuptools",
+        "build-sphinx",
+        "upload_docs",
+        "pytest",
+        "coverage",
+    ]
 
     assert configuration["project"]["name"] == "jwst"
     assert (
-            configuration["project"]["description"]
-            == "Library for calibration of science observations from the James Webb Space Telescope"
+        configuration["project"]["description"]
+        == "Library for calibration of science observations from the James Webb Space Telescope"
     )
     assert configuration["project"]["readme"] == {
         "text": "Library for calibration of science observations from the James Webb Space Telescope",
@@ -252,24 +276,68 @@ def test_pyproject_configuration_setup_cfg():
     ]
     assert configuration["build-system"]["build-backend"] == "setuptools.build_meta"
 
+    assert configuration["tool"]["setuptools"]["packages"] == ["find_packages()"]
+    assert configuration["tool"]["setuptools"]["package-data"] == {
+        "": [
+            "*.asdf",
+            "*.cfg",
+            "tests/data/*.csv",
+            "tests/data/*.ecsv",
+            "tests/data/*.fits",
+            "tests/data/**/*.fits",
+            "*.json",
+            "tests/data/*.json",
+            "tests/data/**/*.json",
+            "tests/data/*.txt",
+            "*.yaml",
+            "*.cat",
+            "*.hdr",
+        ],
+        "jwst.fits_generator": [
+            "templates/*.inc",
+            "templates/*.txt",
+            "tests/okfile/*.prop",
+        ],
+        "jwst.lib": [
+            "tests/data/*.asdf",
+            "tests/data/*.db",
+            "tests/data/*.ecsv",
+            "tests/data/*.fits",
+        ],
+        "jwst.associations": ["tests/data/*.py"],
+        "jwst.transforms": ["resources/schemas/stsci.edu/jwst_pipeline/*.yaml"],
+        "jwst.stpipe.resources": ["schemas/*.yaml"],
+        "jwst.lib.src": ["*.c"],
+        "jwst.cube_build.src": ["*.c"],
+        "jwst.straylight.src": ["*.c"],
+    }
+
 
 def test_pyproject_configuration_setup_py():
     configuration = PyProjectConfiguration.from_directory(
         TEST_DIRECTORY / "input" / "crds"
     )
 
-    assert len(configuration["project"]) == 7
+    assert len(configuration["project"]) == 8
     assert len(configuration["build-system"]) == 1
-    assert len(configuration['tool']) == 1
-    assert len(configuration['tool']['setuptools']) == 1
+    assert len(configuration["tool"]) == 2
+    assert len(configuration["tool"]["setuptools"]) == 4
+
+    assert list(configuration["tool"]) == [
+        "setuptools",
+        "nosetests",
+    ]
 
     assert configuration["project"]["name"] == "crds"
     assert (
-            configuration["project"]["description"]
-            == "Calibration Reference Data System,  HST/JWST/Roman reference file management"
+        configuration["project"]["description"]
+        == "Calibration Reference Data System,  HST/JWST/Roman reference file management"
     )
     assert configuration["project"]["readme"] == "README.rst"
     assert configuration["project"]["license"] == {"file": "LICENSE"}
+    assert configuration["project"]["authors"] == [
+        {"name": "STScI CRDS s/w developers"}
+    ]
     assert configuration["project"]["classifiers"] == [
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
@@ -313,4 +381,82 @@ def test_pyproject_configuration_setup_py():
 
     assert configuration["build-system"]["requires"] == ["setuptools_scm"]
 
-    assert configuration['tool']['setuptools']['zip-safe'] is False
+    assert configuration["tool"]["setuptools"]["zip-safe"] is False
+    assert configuration["tool"]["setuptools"]["packages"] == [
+        "crds",
+        "crds.bestrefs",
+        "crds.certify",
+        "crds.certify.validators",
+        "crds.client",
+        "crds.core",
+        "crds.io",
+        "crds.submit",
+        "crds.misc",
+        "crds.misc.synphot",
+        "crds.refactoring",
+        "crds.hst",
+        "crds.jwst",
+        "crds.tobs",
+        "crds.roman",
+        "crds.tests",
+    ]
+    assert configuration["tool"]["setuptools"]["package-dir"] == {
+        "crds": "crds",
+        "crds.bestrefs": "crds/bestrefs",
+        "crds.certify": "crds/certify",
+        "crds.certify.validators": "crds/certify/validators",
+        "crds.client": "crds/client",
+        "crds.core": "crds/core",
+        "crds.io": "crds/io",
+        "crds.submit": "crds/submit",
+        "crds.misc": "crds/misc",
+        "crds.misc.synphot": "crds/misc/synphot",
+        "crds.refactoring": "crds/refactoring",
+        "crds.hst": "crds/hst",
+        "crds.jwst": "crds/jwst",
+        "crds.roman": "crds/roman",
+        "crds.tobs": "crds/tobs",
+        "crds.tests": "crds/tests",
+    }
+    assert configuration["tool"]["setuptools"]["package-data"] == {
+        "crds.hst": [
+            "*.dat",
+            "*.yaml",
+            "*.json",
+            "tpns/*.tpn",
+            "tpns/includes/*.tpn",
+            "specs/*.spec",
+            "specs/*.rmap",
+            "specs/*.json",
+        ],
+        "crds.jwst": [
+            "*.dat",
+            "*.yaml",
+            "*.json",
+            "tpns/*.tpn",
+            "tpns/includes/*.tpn",
+            "specs/*.spec",
+            "specs/*.rmap",
+            "specs/*.json",
+        ],
+        "crds.roman": [
+            "*.dat",
+            "*.yaml",
+            "*.json",
+            "tpns/*.tpn",
+            "tpns/includes/*.tpn",
+            "specs/*.spec",
+            "specs/*.rmap",
+            "specs/*.json",
+        ],
+        "crds.tobs": [
+            "*.dat",
+            "*.yaml",
+            "*.json",
+            "tpns/*.tpn",
+            "tpns/includes/*.tpn",
+            "specs/*.spec",
+            "specs/*.rmap",
+            "specs/*.json",
+        ],
+    }

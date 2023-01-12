@@ -3,7 +3,7 @@ from abc import ABC
 from configparser import ConfigParser
 from os import PathLike
 from pathlib import Path
-from typing import MutableMapping, Dict, Any, Mapping, Iterator, Collection, Union, List
+from typing import MutableMapping, Dict, Any, Mapping, Iterator, Union, List
 
 import tomli
 import typepigeon
@@ -18,9 +18,13 @@ class ConfigurationTable(MutableMapping, ABC):
 
     name: str
     fields: Dict[str, Any]
+    start_with_placeholders: bool = True
 
     def __init__(self, **kwargs):
-        self.__configuration = {key: None for key in self.fields}
+        if self.start_with_placeholders:
+            self.__configuration = {key: None for key in self.fields}
+        else:
+            self.__configuration = {}
         if len(kwargs) > 0:
             self.update(kwargs)
 
@@ -34,7 +38,7 @@ class ConfigurationTable(MutableMapping, ABC):
         if filename.name.lower() == "pyproject.toml":
             with open(filename, "rb") as configuration_file:
                 file_configuration = tomli.load(configuration_file)
-            base_table = cls.name.split('.', 1)[0]
+            base_table = cls.name.split(".", 1)[0]
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif filename.name.lower() == "setup.cfg":
@@ -42,15 +46,18 @@ class ConfigurationTable(MutableMapping, ABC):
             setup_cfg.read([filename])
             for section in setup_cfg:
                 if "." not in section:
-                    section_translations = SETUP_CFG[section] if section in SETUP_CFG else None
+                    section_translations = (
+                        SETUP_CFG[section] if section in SETUP_CFG else None
+                    )
                     for key, value in setup_cfg.items(section):
-                        if key in section_translations:
+                        if (
+                            section_translations is not None
+                            and key in section_translations
+                        ):
                             table, entry = section_translations[key].rsplit(".", 1)
                             if table == cls.name:
                                 value = [
-                                    line
-                                    for line in value.splitlines()
-                                    if len(line) > 0
+                                    line for line in value.splitlines() if len(line) > 0
                                 ]
                                 if len(value) == 1:
                                     value = value[0]
@@ -72,7 +79,7 @@ class ConfigurationTable(MutableMapping, ABC):
                 for key, value in setup_py.items():
                     if key in section_translations:
                         table, entry = section_translations[key].rsplit(".", 1)
-                        tables = table.split('.')
+                        tables = table.split(".")
                         if tables[0] == cls.name:
                             if len(tables) > 1:
                                 configuration[tables[1]][entry] = value
@@ -86,17 +93,24 @@ class ConfigurationTable(MutableMapping, ABC):
         if not isinstance(directory, Path):
             directory = Path(directory)
 
+        known_configuration_filenames = ["pyproject.toml", "setup.cfg", "setup.py"]
+
         file_configurations = {}
         for filename in directory.iterdir():
             if filename.is_file():
-                if filename.name in ["pyproject.toml", "setup.cfg", "setup.py"]:
+                if filename.name in known_configuration_filenames:
                     file_configuration = cls.from_file(filename)
                     if len(file_configuration) > 0:
                         file_configurations[filename.name] = file_configuration
 
         configuration = cls()
         configuration.__from_directory = directory
-        for (filename, file_configuration) in reversed(file_configurations.items()):
+        file_configurations = [
+            file_configurations[filename]
+            for filename in reversed(known_configuration_filenames)
+            if filename in file_configurations
+        ]
+        for file_configuration in file_configurations:
             if file_configuration is not None:
                 configuration.update(file_configuration)
 
@@ -106,12 +120,12 @@ class ConfigurationTable(MutableMapping, ABC):
         return self.__configuration[key]
 
     def __setitem__(self, key: str, value: Any):
-        if key not in self.__configuration:
+        if self.start_with_placeholders and key not in self.__configuration:
             raise KeyError(f'"{self.name}" table does not contain "{key}"')
         desired_type = self.fields[key]
         if (
-                hasattr(desired_type, "__origin__")
-                and desired_type.__origin__.__name__ == "Union"
+            hasattr(desired_type, "__origin__")
+            and desired_type.__origin__.__name__ == "Union"
         ):
             values = []
             errors = []
@@ -132,7 +146,8 @@ class ConfigurationTable(MutableMapping, ABC):
 
     def update(self, items: Mapping):
         for key, value in items.items():
-            self[key] = value
+            if value is not None and (not hasattr(value, "__len__") or len(value) > 0):
+                self[key] = value
 
     def __delitem__(self, key: str):
         raise RuntimeError("cannot delete configuration entry; set as `None` instead")
@@ -141,14 +156,12 @@ class ConfigurationTable(MutableMapping, ABC):
         yield from self.__configuration
 
     def __len__(self) -> int:
-        return len(
-            [
-                0
-                for value in self.__configuration.values()
-                if value is not None
-                   and (not isinstance(value, Collection) or len(value) > 0)
-            ]
-        )
+        lengths = {
+            key: len(entry) if hasattr(entry, "__len__") else 1
+            for key, entry in self.__configuration.items()
+            if entry is not None
+        }
+        return len([length for length in lengths.values() if length > 0])
 
     def to_toml(self) -> str:
         def table_to_toml(table_name: str, table: Mapping[str, Any]) -> str:
@@ -169,7 +182,7 @@ class ConfigurationTable(MutableMapping, ABC):
         configuration_string = ", ".join(
             f"{key}={repr(value)}"
             for key, value in self.__configuration.items()
-            if value is not None
+            if value is not None and (not hasattr(value, "__len__") or len(value) > 0)
         )
         return f"{self.__class__.__name__}({configuration_string})"
 
@@ -209,7 +222,22 @@ class ProjectMetadata(ConfigurationTable):
         )
         filenames = [filename.name for filename in directory.iterdir()]
         if value is not None:
-            if key == "license":
+            if key == "authors":
+                if isinstance(value, str):
+                    output_authors = []
+                    input_authors = value.split(",")
+                    for author in input_authors:
+                        if "<" in author:
+                            author, email = author.split("<")
+                            email = email.split(">")[0]
+                        else:
+                            email = None
+                        entry = {"name": author.strip()}
+                        if email is not None:
+                            entry["email"] = email.strip()
+                        output_authors.append(entry)
+                    value = output_authors
+            elif key == "license":
                 if isinstance(value, str):
                     if value in filenames:
                         value = {"file": value}
@@ -328,11 +356,12 @@ class ToolTable(ConfigurationTable):
     name = "tool"
     fields = {
         "setuptools": SetuptoolsConfiguration,
-        'setuptools_scm': None,
-        'pytest': None,
-        'coverage': None,
-        'ruff': None,
+        "setuptools_scm": None,
+        "pytest": None,
+        "coverage": None,
+        "ruff": None,
     }
+    start_with_placeholders = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -341,8 +370,15 @@ class ToolTable(ConfigurationTable):
                 self._ConfigurationTable__configuration[table_name] = table()
 
     def __setitem__(self, table_name: str, table: "ToolConfiguration"):
-        if table_name in self.fields and self.fields[table_name] is not None and table is not None:
+        if (
+            table_name in self.fields
+            and self.fields[table_name] is not None
+            and table is not None
+        ):
             configuration = self.fields[table_name]()
             configuration.update(table)
             table = configuration
-        self._ConfigurationTable__configuration[table_name] = table
+        super().__setitem__(key=table_name, value=table)
+
+    def __len__(self) -> int:
+        return len(self._ConfigurationTable__configuration)

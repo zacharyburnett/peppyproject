@@ -10,6 +10,7 @@ SETUP_CFG = {
     "metadata": {
         "name": "project.name",
         "version": "project.version",
+        "author": "project.authors",
         "description": "project.description",
         "long_description": "project.readme",
         "keywords": "project.keywords",
@@ -145,9 +146,9 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
                     pass
                 variables[name.strip()] = value
 
-        parameters = re.findall(
-            "(.+?=[^=]+),", setup_call.split("setup(", 1)[-1].rsplit(")", 1)[0]
-        )
+        parameter_string = setup_call.split("setup(", 1)[-1].rsplit(")", 1)[0]
+        parameters = re.findall("(.+?=[^=]+),", parameter_string)
+        keyword_arguments = re.findall("\*\*\w+", parameter_string)
         for parameter in parameters:
             name, value = parameter.strip().split("=", 1)
             if "open(" in value:
@@ -158,6 +159,7 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
                     value = value.replace(variable, repr(variables[variable]))
 
             value = re.sub("\]\s*\+\s*\[", ",", value)
+            value = re.sub("\}\s*\+\s*\*\*\{", ",", value)
 
             try:
                 value = ast.literal_eval(value)
@@ -165,5 +167,22 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
                 pass
 
             setup_parameters[name] = value
+        for value in keyword_arguments:
+            value = value.replace("**", "")
+
+            for variable in variables:
+                if variable in value:
+                    value = value.replace(variable, repr(variables[variable]))
+
+            value = re.sub("\]\s*\+\s*\[", ",", value)
+            value = re.sub("\}\s*\+\s*\*\*\{", ",", value)
+
+            try:
+                value = ast.literal_eval(value)
+            except:
+                pass
+
+            for key, entry in value.items():
+                setup_parameters[key] = entry
 
     return setup_parameters

@@ -16,10 +16,10 @@ class PyProjectConfiguration(Mapping):
     """
 
     def __init__(
-            self,
-            project: ProjectMetadata = None,
-            build_system: BuildConfiguration = None,
-            tool: ToolTable = None,
+        self,
+        project: ProjectMetadata = None,
+        build_system: BuildConfiguration = None,
+        tool: ToolTable = None,
     ):
         if project is None:
             project = ProjectMetadata()
@@ -57,6 +57,6 @@ class PyProjectConfiguration(Mapping):
         tables_string = ", ".join(
             f"{key}={repr(value)}"
             for key, value in self.__tables.items()
-            if value is not None
+            if value is not None and (not hasattr(value, "__len__") or len(value) > 0)
         )
         return f"{self.__class__.__name__}({tables_string})"
