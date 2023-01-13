@@ -7,7 +7,7 @@ license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
 classifiers = []
 dependencies = [
-    'tomli-w',
+    'tomli-w @ git+https://github.com/zacharyburnett/tomli-w.git@generics',
     'typepigeon>=2.0.0',
 ]
 dynamic = ['version']
