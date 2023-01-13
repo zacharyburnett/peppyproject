@@ -7,7 +7,7 @@ TEST_DIRECTORY = Path(__file__).parent / "data"
 
 def test_pyproject_configuration_pyproject_toml():
     configuration = PyProjectConfiguration.from_directory(
-        TEST_DIRECTORY / "input" / "romancal"
+        TEST_DIRECTORY / "input" / "pyproject_toml"
     )
 
     assert len(configuration["project"]) == 13
@@ -24,8 +24,8 @@ def test_pyproject_configuration_pyproject_toml():
 
     assert configuration["project"]["name"] == "romancal"
     assert (
-        configuration["project"]["description"]
-        == "Library for calibration of science observations from the Nancy Grace Roman Space Telescope"
+            configuration["project"]["description"]
+            == "Library for calibration of science observations from the Nancy Grace Roman Space Telescope"
     )
     assert configuration["project"]["readme"] == "README.md"
     assert configuration["project"]["requires-python"] == ">=3.8"
@@ -116,7 +116,7 @@ def test_pyproject_configuration_pyproject_toml():
 
 def test_pyproject_configuration_setup_cfg():
     configuration = PyProjectConfiguration.from_directory(
-        TEST_DIRECTORY / "input" / "jwst"
+        TEST_DIRECTORY / "input" / "setup_cfg"
     )
 
     assert len(configuration["project"]) == 8
@@ -136,8 +136,8 @@ def test_pyproject_configuration_setup_cfg():
 
     assert configuration["project"]["name"] == "jwst"
     assert (
-        configuration["project"]["description"]
-        == "Library for calibration of science observations from the James Webb Space Telescope"
+            configuration["project"]["description"]
+            == "Library for calibration of science observations from the James Webb Space Telescope"
     )
     assert configuration["project"]["readme"] == {
         "text": "Library for calibration of science observations from the James Webb Space Telescope",
@@ -317,7 +317,7 @@ def test_pyproject_configuration_setup_cfg():
 
 def test_pyproject_configuration_setup_py():
     configuration = PyProjectConfiguration.from_directory(
-        TEST_DIRECTORY / "input" / "crds"
+        TEST_DIRECTORY / "input" / "setup_py"
     )
 
     assert len(configuration["project"]) == 8
@@ -332,8 +332,8 @@ def test_pyproject_configuration_setup_py():
 
     assert configuration["project"]["name"] == "crds"
     assert (
-        configuration["project"]["description"]
-        == "Calibration Reference Data System,  HST/JWST/Roman reference file management"
+            configuration["project"]["description"]
+            == "Calibration Reference Data System,  HST/JWST/Roman reference file management"
     )
     assert configuration["project"]["readme"] == "README.rst"
     assert configuration["project"]["license"] == {"file": "LICENSE"}
