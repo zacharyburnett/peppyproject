@@ -121,7 +121,7 @@ def test_pyproject_configuration_setup_cfg():
 
     assert len(configuration["project"]) == 8
     assert len(configuration["build-system"]) == 2
-    assert len(configuration["tool"]) == 5
+    assert len(configuration["tool"]) == 7
     assert len(configuration["tool"]["setuptools"]) == 2
 
     assert list(configuration["tool"]) == [
@@ -130,6 +130,8 @@ def test_pyproject_configuration_setup_cfg():
         "upload_docs",
         "pytest",
         "coverage",
+        "setuptools_scm",
+        "ruff",
     ]
 
     assert configuration["project"]["name"] == "jwst"
@@ -269,10 +271,10 @@ def test_pyproject_configuration_setup_cfg():
     }
 
     assert configuration["build-system"]["requires"] == [
+        "oldest-supported-numpy",
         "setuptools>=42",
         "setuptools_scm[toml]>=3.4",
         "wheel",
-        "oldest-supported-numpy",
     ]
     assert configuration["build-system"]["build-backend"] == "setuptools.build_meta"
 

@@ -7,6 +7,7 @@ license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
 classifiers = []
 dependencies = [
+    'tomli-w',
     'typepigeon>=2.0.0',
 ]
 dynamic = ['version']
@@ -33,11 +34,23 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools_scm]
 
 [tool.ruff]
-extend-ignore = []
+select = ['ALL']
+line-length = 127
+extend-ignore = [
+    'ANN',
+    'C',
+    'D',
+    'E722',# Do not use bare `except`
+    'BLE001', # Do not catch blind exception: `Exception`
+    'S101', # Use of `assert` detected
+    'Q000', # Single quotes found but double quotes preferred
+    'UP',
+]
 extend-exclude = [
     'build',
     'docs',
     '.eggs',
     '.tox',
     'venv',
+    'tests/data',
 ]

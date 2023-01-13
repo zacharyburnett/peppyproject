@@ -1,12 +1,12 @@
 from os import PathLike
 from pathlib import Path
-from typing import Mapping, Iterator
+from typing import Iterator, Mapping
 
+from peppyproject.base import ConfigurationTable
 from peppyproject.tables import (
-    ConfigurationTable,
-    ProjectMetadata,
     BuildConfiguration,
-    ToolTable,
+    ProjectMetadata,
+    ToolsTable,
 )
 
 
@@ -19,14 +19,14 @@ class PyProjectConfiguration(Mapping):
         self,
         project: ProjectMetadata = None,
         build_system: BuildConfiguration = None,
-        tool: ToolTable = None,
+        tool: ToolsTable = None,
     ):
         if project is None:
             project = ProjectMetadata()
         if build_system is None:
             build_system = BuildConfiguration()
         if tool is None:
-            tool = ToolTable()
+            tool = ToolsTable()
         self.__tables = {
             "project": project,
             "build-system": build_system,
@@ -41,11 +41,14 @@ class PyProjectConfiguration(Mapping):
         return cls(
             project=ProjectMetadata.from_directory(directory=directory),
             build_system=BuildConfiguration.from_directory(directory=directory),
-            tool=ToolTable.from_directory(directory=directory),
+            tool=ToolsTable.from_directory(directory=directory),
         )
 
     def __getitem__(self, table: str) -> ConfigurationTable:
         return self.__tables[table]
+
+    def to_toml(self) -> str:
+        return "\n".join(table.to_toml() for table in self.__tables.values())
 
     def __len__(self) -> int:
         return len(self.__tables)

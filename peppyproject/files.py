@@ -1,10 +1,11 @@
 # https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#compatibility-with-other-tools
 import ast
+import contextlib
 import re
 import warnings
 from os import PathLike
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 SETUP_CFG = {
     "metadata": {
@@ -138,33 +139,29 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
                 for variable in variables:
                     if variable in value:
                         value = value.replace(variable, repr(variables[variable]))
-                for glob_pattern in re.findall("glob.glob\((.+)\)", value):
+                for glob_pattern in re.findall("glob.glob\\((.+)\\)", value):
                     value = value.replace(f"glob.glob({glob_pattern})", glob_pattern)
-                try:
+                with contextlib.suppress(Exception):
                     value = ast.literal_eval(value.strip())
-                except:
-                    pass
                 variables[name.strip()] = value
 
         parameter_string = setup_call.split("setup(", 1)[-1].rsplit(")", 1)[0]
-        parameters = re.findall("(.+?=[^=]+),", parameter_string)
-        keyword_arguments = re.findall("\*\*\w+", parameter_string)
+        parameters = re.findall(r"(.+?=[^=]+),", parameter_string)
+        keyword_arguments = re.findall(r"\*\*\w+", parameter_string)
         for parameter in parameters:
             name, value = parameter.strip().split("=", 1)
             if "open(" in value:
-                value = re.findall("open\((.+?)\).read\(\)", value)[0]
+                value = re.findall(r"open\((.+?)\).read\(\)", value)[0]
 
             for variable in variables:
                 if variable in value:
                     value = value.replace(variable, repr(variables[variable]))
 
-            value = re.sub("\]\s*\+\s*\[", ",", value)
-            value = re.sub("\}\s*\+\s*\*\*\{", ",", value)
+            value = re.sub(r"\]\s*\+\s*\[", ",", value)
+            value = re.sub(r"\}\s*\+\s*\*\*\{", ",", value)
 
-            try:
+            with contextlib.suppress(Exception):
                 value = ast.literal_eval(value)
-            except:
-                pass
 
             setup_parameters[name] = value
         for value in keyword_arguments:
@@ -174,13 +171,11 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
                 if variable in value:
                     value = value.replace(variable, repr(variables[variable]))
 
-            value = re.sub("\]\s*\+\s*\[", ",", value)
-            value = re.sub("\}\s*\+\s*\*\*\{", ",", value)
+            value = re.sub(r"\]\s*\+\s*\[", ",", value)
+            value = re.sub(r"\}\s*\+\s*\*\*\{", ",", value)
 
-            try:
+            with contextlib.suppress(Exception):
                 value = ast.literal_eval(value)
-            except:
-                pass
 
             for key, entry in value.items():
                 setup_parameters[key] = entry
