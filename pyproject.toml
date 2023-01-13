@@ -15,6 +15,7 @@ dynamic = ['version']
 [project.optional-dependencies]
 test = [
     'pytest',
+    'tomli',
 ]
 
 [project.urls]
