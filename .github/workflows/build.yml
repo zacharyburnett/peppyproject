@@ -1,0 +1,23 @@
+name: build
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    name: publish package to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+          cache-dependency-path: 'pyproject.toml'
+      - run: pip wheel . --no-deps -w dist
+      - uses: pypa/gh-action-pypi-publish@v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
