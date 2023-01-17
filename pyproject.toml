@@ -7,8 +7,8 @@ license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
 classifiers = []
 dependencies = [
-    'ini2toml',
-    'tomli-w @ git+https://github.com/zacharyburnett/tomli-w.git@generics',
+    'ini2toml[full]',
+    'tomli-w',
     'typepigeon>=2.0.0',
 ]
 dynamic = ['version']

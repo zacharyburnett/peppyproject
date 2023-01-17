@@ -80,15 +80,15 @@ class ProjectMetadata(ConfigurationTable):
                 else:
                     value = None
             elif key == "readme":
-                if isinstance(value, Mapping) and 'text' in value:
-                    value = value['text']
+                if isinstance(value, Mapping) and "text" in value:
+                    value = value["text"]
                 if isinstance(value, str):
                     if value in filenames:
-                        if Path(value).suffix.lower() == '.md':
-                            content_type = 'text/markdown'
+                        if Path(value).suffix.lower() == ".md":
+                            content_type = "text/markdown"
                         else:
-                            content_type = 'text/x-rst'
-                        value = {'file': value, 'content-type': content_type}
+                            content_type = "text/x-rst"
+                        value = {"file": value, "content-type": content_type}
                     else:
                         readme_files = [
                             filename
@@ -125,7 +125,9 @@ class ProjectMetadata(ConfigurationTable):
                             for entry_point in entry_points.splitlines()
                             if len(entry_point) > 0
                         ]
-                        value[entry_point_location] = {key: value for key, value in entry_points}
+                        value[entry_point_location] = {
+                            key: value for key, value in entry_points
+                        }
 
         super().__setitem__(key, value)
 
@@ -160,9 +162,9 @@ class ToolsTable(ConfigurationTable):
 
     def __setitem__(self, table_name: str, table: "ToolTable"):
         if (
-                table_name in self.fields
-                and self.fields[table_name] is not None
-                and table is not None
+            table_name in self.fields
+            and self.fields[table_name] is not None
+            and table is not None
         ):
             configuration = self.fields[table_name]()
             configuration.update(table)
@@ -173,9 +175,9 @@ class ToolsTable(ConfigurationTable):
         for key, value in items.items():
             if value is not None:
                 if (
-                        key in self
-                        and isinstance(self[key], Mapping)
-                        and isinstance(value, Mapping)
+                    key in self
+                    and isinstance(self[key], Mapping)
+                    and isinstance(value, Mapping)
                 ):
                     self[key].update(value)
                 else:

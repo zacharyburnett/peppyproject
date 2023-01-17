@@ -7,7 +7,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Mapping
 
-SETUP_CFG_INDENT = '    '
+SETUP_CFG_INDENT = "    "
 SETUP_CFG = {
     "metadata": {
         "name": "project.name",
@@ -39,10 +39,10 @@ PYTHON_LINE = {
 
 
 def python_statement(
-        lines: List[str],
-        index: int = 0,
-        current_statement: str = None,
-        statements: List[str] = None,
+    lines: List[str],
+    index: int = 0,
+    current_statement: str = None,
+    statements: List[str] = None,
 ) -> Tuple[List[str], int]:
     if current_statement is None:
         current_statement = ""
@@ -61,8 +61,8 @@ def python_statement(
 
     # check if line continues
     if any(
-            line.endswith(continuing_character)
-            for continuing_character in PYTHON_LINE["continuing"]
+        line.endswith(continuing_character)
+        for continuing_character in PYTHON_LINE["continuing"]
     ):
         statements, index = python_statement(
             lines=lines,
@@ -80,7 +80,7 @@ def python_statement(
         current_statement += line
 
     if any(
-            line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
+        line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
     ):
         statements[-1] += current_statement
     else:
@@ -89,7 +89,9 @@ def python_statement(
     return statements, index
 
 
-def parse_function_parameters(parameter_string: str, variables: Dict[str, Any] = None) -> Dict[str, Any]:
+def parse_function_parameters(
+    parameter_string: str, variables: Dict[str, Any] = None
+) -> Dict[str, Any]:
     if variables is None:
         variables = {}
 
@@ -112,10 +114,12 @@ def parse_function_parameters(parameter_string: str, variables: Dict[str, Any] =
         with contextlib.suppress(Exception):
             value = ast.literal_eval(value)
 
-        if isinstance(value, str) and 'find_packages(' in value:
-            value = {'find':
-                parse_function_parameters(
-                    parameter_string=value.split('find_packages(', 1)[-1].rsplit(')', 1)[0],
+        if isinstance(value, str) and "find_packages(" in value:
+            value = {
+                "find": parse_function_parameters(
+                    parameter_string=value.split("find_packages(", 1)[-1].rsplit(
+                        ")", 1
+                    )[0],
                     variables=variables,
                 )
             }
@@ -159,8 +163,8 @@ def read_python_file(filename: PathLike) -> List[str]:
     indices = []
     for index, statement in reversed(list(enumerate(statements))):
         if any(
-                statement.strip().endswith(continuing_character)
-                for continuing_character in PYTHON_LINE["continuing"]
+            statement.strip().endswith(continuing_character)
+            for continuing_character in PYTHON_LINE["continuing"]
         ):
             statements[index] += statements[index + 1]
             indices.append(index + 1)
@@ -208,7 +212,9 @@ def read_setup_py(filename: PathLike) -> Dict[str, Any]:
 
     for parameter in list(setup_parameters):
         value = setup_parameters[parameter]
-        if isinstance(value, Mapping) and any(key == '' for key in value):
-            setup_parameters[parameter] = {key if key != '' else '*': entry for key, entry in value.items()}
+        if isinstance(value, Mapping) and any(key == "" for key in value):
+            setup_parameters[parameter] = {
+                key if key != "" else "*": entry for key, entry in value.items()
+            }
 
     return setup_parameters
