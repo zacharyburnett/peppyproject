@@ -3,13 +3,31 @@ from abc import ABC
 from configparser import ConfigParser
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Mapping, MutableMapping
+from tempfile import NamedTemporaryFile
+from typing import Any, Dict, Iterator, Mapping, MutableMapping, Collection
 
 import tomli
 import tomli_w
 import typepigeon
+from ini2toml.api import Translator
 
-from peppyproject.files import SETUP_CFG, read_setup_py
+from peppyproject.files import SETUP_CFG, read_setup_py, SETUP_CFG_INDENT
+
+
+def value_to_ini_str(value: Any, indent: str = SETUP_CFG_INDENT) -> str:
+    if hasattr(value, '__len__') and len(value) == 0:
+        return ''
+    elif isinstance(value, str):
+        return value
+    elif isinstance(value, Mapping):
+        return '\n' + '\n'.join(
+            f'{indent}{key}{":" if "find" in value else " ="} {value_to_ini_str(entry, indent=indent + SETUP_CFG_INDENT)}'
+            for key, entry in value.items()
+        )
+    elif isinstance(value, Collection):
+        return '\n' + '\n'.join(f'{indent}{entry}' for entry in value)
+    else:
+        return str(value)
 
 
 class ConfigurationTable(MutableMapping, ABC):
@@ -20,7 +38,6 @@ class ConfigurationTable(MutableMapping, ABC):
     name: str
     fields: Dict[str, Any]
     start_with_placeholders: bool = True
-    inline_tables: List[str] = []
 
     def __init__(self, **kwargs):
         if self.start_with_placeholders:
@@ -43,102 +60,55 @@ class ConfigurationTable(MutableMapping, ABC):
             base_table = cls.name.split(".", 1)[0]
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
-        elif filename.name.lower() == "setup.cfg":
-            setup_cfg = ConfigParser()
-            setup_cfg.read([filename])
-            for section in setup_cfg:
-                if "." not in section:
-                    section_translations = (
-                        SETUP_CFG[section] if section in SETUP_CFG else None
-                    )
-                    if section_translations is not None:
-                        for key, value in setup_cfg.items(section):
-                            if key in section_translations:
-                                table, entry = section_translations[key].rsplit(".", 1)
-                                if table == cls.name:
-                                    value = [
-                                        line
-                                        for line in value.splitlines()
-                                        if len(line) > 0
-                                    ]
-                                    if len(value) == 1:
-                                        value = value[0]
-                                    configuration[entry] = value
-                    elif section != "DEFAULT" and cls.name == "tool":
-                        table = (
-                            section.replace("tool:", "")
-                            if section.startswith("tool:")
-                            else section
-                        )
-                        if ":" in table:
-                            table, subtable = table.split(":")
-                        else:
-                            subtable = None
-                        if table not in configuration:
-                            if table in configuration.fields:
-                                value = configuration.fields[table]
-                                if isinstance(value, type):
-                                    value = value()
-                                configuration[table] = value
-                            else:
-                                configuration[table] = {}
-                        if subtable is not None:
-                            if (
-                                subtable not in configuration[table]
-                                or configuration[table][subtable] is None
-                            ):
-                                subtable_class = (
-                                    configuration.fields[subtable]
-                                    if subtable in configuration.fields
-                                    else ConfigurationSubTable
-                                )
-                                configuration[table][subtable] = subtable_class()
-                            for key, value in setup_cfg.items(section):
-                                configuration[table][subtable][key] = value
-                        else:
-                            for key, value in setup_cfg.items(section):
-                                configuration[table][key] = value
-                else:
-                    values = setup_cfg.items(section)
-                    if section in ["options.extras_require", "options.entry_points"]:
-                        values = dict(values)
-                    base_section, key = section.split(".", 1)
-                    section_translations = (
-                        SETUP_CFG[base_section] if base_section in SETUP_CFG else None
-                    )
-                    if base_section in SETUP_CFG:
-                        if section_translations is not None:
-                            if key in section_translations:
-                                table, entry = section_translations[key].rsplit(".", 1)
-                                if table == cls.name:
-                                    configuration[entry] = values
-                        elif base_section != "DEFAULT" and cls.name == "tool":
-                            if base_section not in configuration:
-                                configuration[base_section] = configuration.fields.get(
-                                    base_section, {}
-                                )
-                            for key, value in setup_cfg.items(section):
-                                configuration[base_section][key] = value
-        elif filename.name.lower() == "setup.py":
-            setup_py = read_setup_py(filename)
-            for _section, section_translations in SETUP_CFG.items():
-                for key, value in setup_py.items():
-                    if key in section_translations:
-                        table, entry = section_translations[key].rsplit(".", 1)
-                        tables = table.split(".")
-                        if tables[0] == cls.name:
-                            if len(tables) > 1:
-                                subtable = tables[1]
-                                if subtable not in configuration:
-                                    subtable_class = (
-                                        configuration.fields[subtable]
-                                        if subtable in configuration.fields
-                                        else ConfigurationSubTable
-                                    )
-                                    configuration[subtable] = subtable_class()
-                                configuration[subtable][entry] = value
-                            else:
-                                configuration[entry] = value
+        elif filename.suffix.lower() in [".cfg", ".ini"] or filename.name.lower() == 'setup.py':
+            if filename.suffix.lower() in [".cfg", ".ini"]:
+                with open(filename) as configuration_file:
+                    ini_string = configuration_file.read()
+                profile_name = filename.name.lower()
+                setup_py = None
+            else:
+                setup_py = read_setup_py(filename)
+                setup_cfg = ConfigParser()
+                for section_name, section in SETUP_CFG.items():
+                    for key, value in setup_py.items():
+                        if key in section:
+                            value = value_to_ini_str(value)
+                            if section_name not in setup_cfg.sections():
+                                setup_cfg.add_section(section_name)
+                            setup_cfg.set(section_name, key, value)
+                with NamedTemporaryFile() as temporary_file:
+                    with open(temporary_file.name, 'w') as setup_cfg_file:
+                        setup_cfg.write(setup_cfg_file)
+                    with open(temporary_file.name, 'r') as setup_cfg_file:
+                        ini_string = setup_cfg_file.read()
+                profile_name = 'setup.cfg'
+            toml_string = Translator().translate(
+                ini_string, profile_name=profile_name,
+            )
+            file_configuration = tomli.loads(toml_string)
+            if 'project' in file_configuration:
+                if "homepage" in file_configuration["project"]:
+                    if "urls" not in file_configuration["project"]:
+                        file_configuration["project"]["urls"] = ConfigurationSubTable()
+                    file_configuration["project"]["urls"]["homepage"] = file_configuration[
+                        "project"
+                    ]["homepage"]
+                    del file_configuration["project"]["homepage"]
+            if setup_py is not None:
+                if 'tool' in file_configuration:
+                    if 'setuptools' in file_configuration['tool']:
+                        if 'extras-require' in file_configuration['tool']['setuptools']:
+                            if 'project' not in file_configuration:
+                                file_configuration['project'] = ConfigurationSubTable()
+                            file_configuration['project']['optional-dependencies'] = setup_py['extras_require']
+                            del file_configuration['tool']['setuptools']['extras-require']
+                        if 'package-data' in file_configuration['tool']['setuptools']:
+                            if 'project' not in file_configuration:
+                                file_configuration['tool']['setuptools'] = ConfigurationSubTable()
+                            file_configuration['tool']['setuptools']['package-data'] = setup_py['package_data']
+            base_table = cls.name.split(".", 1)[0]
+            if base_table in file_configuration:
+                configuration.update(file_configuration[base_table])
 
         return configuration
 
@@ -147,11 +117,15 @@ class ConfigurationTable(MutableMapping, ABC):
         if not isinstance(directory, Path):
             directory = Path(directory)
 
-        known_configuration_filenames = ["pyproject.toml", "setup.cfg", "setup.py"]
+        known_filenames = ["pyproject.toml", "setup.cfg", "setup.py"]
+        known_suffixes = ['.cfg', '.ini']
 
         file_configurations = {}
         for filename in directory.iterdir():
-            if filename.is_file() and filename.name in known_configuration_filenames:
+            if filename.is_file() and (
+                    filename.name.lower() in known_filenames
+                    or filename.suffix.lower() in known_suffixes
+            ):
                 file_configuration = cls.from_file(filename)
                 if len(file_configuration) > 0:
                     file_configurations[filename.name] = file_configuration
@@ -160,11 +134,11 @@ class ConfigurationTable(MutableMapping, ABC):
         configuration.__from_directory = directory
         file_configurations = [
             file_configurations[filename]
-            for filename in reversed(known_configuration_filenames)
+            for filename in reversed(known_filenames)
             if filename in file_configurations
         ]
         for file_configuration in file_configurations:
-            if file_configuration is not None:
+            if file_configuration is not None and len(file_configuration) > 0:
                 configuration.update(file_configuration)
 
         return configuration
@@ -185,8 +159,8 @@ class ConfigurationTable(MutableMapping, ABC):
                 else ConfigurationSubTable
             )
             if (
-                hasattr(desired_type, "__origin__")
-                and desired_type.__origin__.__name__ == "Union"
+                    hasattr(desired_type, "__origin__")
+                    and desired_type.__origin__.__name__ == "Union"
             ):
                 values = []
                 errors = []
@@ -208,8 +182,8 @@ class ConfigurationTable(MutableMapping, ABC):
                         for sub_key, sub_value in value.items():
                             if sub_key in desired_type:
                                 if (
-                                    key not in self.__configuration
-                                    or self.__configuration[key] is None
+                                        key not in self.__configuration
+                                        or self.__configuration[key] is None
                                 ):
                                     self.__configuration[key] = subtable_class()
                                 self[key][sub_key] = typepigeon.to_type(
@@ -256,10 +230,10 @@ class ConfigurationTable(MutableMapping, ABC):
             key: value
             for key, value in self.__configuration.items()
             if value is not None
-            and (
-                not self.start_with_placeholders
-                or (not hasattr(value, "__len__") or len(value) > 0)
-            )
+               and (
+                       not self.start_with_placeholders
+                       or (not hasattr(value, "__len__") or len(value) > 0)
+               )
         }
         return repr(configuration_string)
 

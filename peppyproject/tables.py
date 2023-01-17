@@ -34,7 +34,6 @@ class ProjectMetadata(ConfigurationTable):
         "optional-dependencies": Dict[str, List[str]],
         "dynamic": List[str],
     }
-    inline_tables = ["license", "authors", "readme"]
 
     def __setitem__(self, key: str, value: Any):
         generic = self.fields[key]
@@ -61,38 +60,49 @@ class ProjectMetadata(ConfigurationTable):
                         output_authors.append(entry)
                     value = output_authors
             elif key == "license":
-                if isinstance(value, str):
-                    if value in filenames:
-                        value = {"file": value}
-                    else:
-                        license_files = [
-                            filename
-                            for filename in filenames
-                            if "license" in filename.lower()
-                        ]
-                        if len(license_files) > 0:
-                            if len(license_files) > 1:
-                                warnings.warn(
-                                    f"multiple license files found; {license_files}"
-                                )
-                            value = {"file": license_files[0]}
-                        else:
-                            value = None
-            elif key == "readme":
-                if isinstance(value, str) and value not in filenames:
-                    readme_files = [
+                license_filename = None
+                if isinstance(value, str) and value in filenames:
+                    license_filename = value
+                else:
+                    license_files = [
                         filename
                         for filename in filenames
-                        if "readme" in filename.lower()
+                        if "license" in filename.lower()
                     ]
-                    if len(readme_files) > 0:
-                        if len(readme_files) > 1:
+                    if len(license_files) > 0:
+                        if len(license_files) > 1:
                             warnings.warn(
-                                f"multiple README files found; {readme_files}"
+                                f"multiple license files found; {license_files}"
                             )
-                        value = readme_files[0]
+                        license_filename = license_files[0]
+                if license_filename is not None:
+                    value = {"file": license_filename, "content-type": "text/plain"}
+                else:
+                    value = None
+            elif key == "readme":
+                if isinstance(value, Mapping) and 'text' in value:
+                    value = value['text']
+                if isinstance(value, str):
+                    if value in filenames:
+                        if Path(value).suffix.lower() == '.md':
+                            content_type = 'text/markdown'
+                        else:
+                            content_type = 'text/x-rst'
+                        value = {'file': value, 'content-type': content_type}
                     else:
-                        value = {"text": value}
+                        readme_files = [
+                            filename
+                            for filename in filenames
+                            if "readme" in filename.lower()
+                        ]
+                        if len(readme_files) > 0:
+                            if len(readme_files) > 1:
+                                warnings.warn(
+                                    f"multiple README files found; {readme_files}"
+                                )
+                            value = readme_files[0]
+                        else:
+                            value = {"text": value, "content-type": "text/plain"}
             elif key == "optional-dependencies":
                 if not isinstance(value, generic.__origin__):
                     value = typepigeon.to_type(value, generic)
@@ -115,7 +125,7 @@ class ProjectMetadata(ConfigurationTable):
                             for entry_point in entry_points.splitlines()
                             if len(entry_point) > 0
                         ]
-                        value[entry_point_location] = dict(entry_points)
+                        value[entry_point_location] = {key: value for key, value in entry_points}
 
         super().__setitem__(key, value)
 
@@ -150,9 +160,9 @@ class ToolsTable(ConfigurationTable):
 
     def __setitem__(self, table_name: str, table: "ToolTable"):
         if (
-            table_name in self.fields
-            and self.fields[table_name] is not None
-            and table is not None
+                table_name in self.fields
+                and self.fields[table_name] is not None
+                and table is not None
         ):
             configuration = self.fields[table_name]()
             configuration.update(table)
@@ -163,9 +173,9 @@ class ToolsTable(ConfigurationTable):
         for key, value in items.items():
             if value is not None:
                 if (
-                    key in self
-                    and isinstance(self[key], Mapping)
-                    and isinstance(value, Mapping)
+                        key in self
+                        and isinstance(self[key], Mapping)
+                        and isinstance(value, Mapping)
                 ):
                     self[key].update(value)
                 else:

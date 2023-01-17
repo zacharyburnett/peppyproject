@@ -16,7 +16,7 @@ class SetuptoolsTable(ToolTable):
         "zip-safe": bool,
         "eager-resources": List[str],
         "py-modules": List[str],
-        "packages": Union[List[str], Dict[str, Any]],
+        "packages": Union[List[str], Dict[str, Any], str],
         # Used when explicitly listing ``packages``
         "package-dir": Union[Dict[str, Any]],
         # See https://setuptools.pypa.io/en/latest/userguide/datafiles.html

@@ -1,7 +1,6 @@
 [project]
 name = "crds"
 description = "Calibration Reference Data System,  HST/JWST/Roman reference file management"
-readme = "README.rst"
 authors = [
     { name = "STScI CRDS s/w developers" },
 ]
@@ -22,9 +21,20 @@ dependencies = [
     "lxml",
     "parsley",
 ]
+dynamic = [
+    "version",
+]
+
+[project.readme]
+file = "README.rst"
+content-type = 'text/x-rst'
 
 [project.license]
 file = "LICENSE"
+content-type = "text/plain"
+
+[project.urls]
+homepage = "https://github.com/spacetelescope/crds"
 
 [project.optional-dependencies]
 jwst = [
@@ -73,10 +83,15 @@ synphot = [
 
 [build-system]
 requires = [
-    "setuptools_scm",
+    "setuptools>=61.2",
 ]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
+platforms = [
+    "Linux",
+    "OS-X",
+]
 zip-safe = false
 packages = [
     "crds",
@@ -96,6 +111,7 @@ packages = [
     "crds.roman",
     "crds.tests",
 ]
+include-package-data = false
 
 [tool.setuptools.package-dir]
 crds = "crds"

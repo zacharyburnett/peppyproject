@@ -1,6 +1,7 @@
 [project]
 name = "jwst"
 description = "Library for calibration of science observations from the James Webb Space Telescope"
+requires-python = ">=3.8"
 authors = [
     { name = "JWST calibration pipeline developers" },
 ]
@@ -41,24 +42,21 @@ dependencies = [
     "asdf-astropy>=0.3.0",
     "wiimatch>=0.2.1",
 ]
+dynamic = [
+    "version",
+]
 
 [project.readme]
 text = "Library for calibration of science observations from the James Webb Space Telescope"
+content-type = "text/plain"
 
-[project.entry-points."asdf.extensions"]
-jwst_pipeline = "jwst.transforms.integration:get_extensions"
+[project.urls]
+Homepage = "https://github.com/spacetelescope/jwst"
+Tracker = "https://github.com/spacetelescope/jwst/issues"
+Documentation = "https://jwst-pipeline.readthedocs.io/en/stable/"
+"Source Code" = "https://github.com/spacetelescope/jwst"
 
-[project.entry-points."asdf.resource_mappings"]
-jwst_pipeline = "jwst.transforms.integration:get_resource_mappings"
-jwst_datamodel = "jwst.datamodels.integration:get_resource_mappings"
-
-[project.entry-points."stpipe.steps"]
-jwst = "jwst.stpipe.integration:get_steps"
-
-[project.entry-points.pytest11]
-report_crds_context = "pytest_crds.plugin"
-
-[project.entry-points.console_scripts]
+[project.scripts]
 asn_edit = "jwst.scripts.asn_edit:main"
 asn_from_list = "jwst.associations.asn_from_list:main"
 asn_gather = "jwst.scripts.asn_gather:main"
@@ -104,6 +102,19 @@ v1_calculate = "jwst.scripts.v1_calculate:main"
 verify_install_requires = "jwst.scripts.verify_install_requires:main"
 world_coords = "jwst.scripts.world_coords:main"
 
+[project.entry-points."stpipe.steps"]
+jwst = "jwst.stpipe.integration:get_steps"
+
+[project.entry-points.pytest11]
+report_crds_context = "pytest_crds.plugin"
+
+[project.entry-points."asdf.extensions"]
+jwst_pipeline = "jwst.transforms.integration:get_extensions"
+
+[project.entry-points."asdf.resource_mappings"]
+jwst_pipeline = "jwst.transforms.integration:get_resource_mappings"
+jwst_datamodel = "jwst.datamodels.integration:get_resource_mappings"
+
 [project.optional-dependencies]
 aws = [
     "stsci-aws-utils>=0.1.2",
@@ -147,12 +158,14 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = [
-    "find_packages()",
-]
+zip-safe = false
+include-package-data = false
+
+[tool.setuptools.packages.find]
+namespaces = false
 
 [tool.setuptools.package-data]
-"" = [
+"*" = [
     "*.asdf",
     "*.cfg",
     "tests/data/*.csv",
@@ -202,15 +215,24 @@ source-dir = "docs"
 build-dir = "docs"
 all_files = "1"
 
-[tool.upload_docs]
+[tool.distutils.upload_docs]
 upload-dir = "docs/_build/html"
-show-response = "1"
+show-response = 1
 
-[tool.pytest]
+[tool.pytest.ini_options]
 minversion = "6.0"
-norecursedirs = "\ndocs/_build\ndocs/exts\njwst/timeconversion\njwst/associations/tests/data\nscripts\n.tox\n.eggs\nbuild"
-asdf_schema_tests_enabled = "true"
-asdf_schema_validate_default = "false"
+norecursedirs = [
+    "docs/_build",
+    "docs/exts",
+    "jwst/timeconversion",
+    "jwst/associations/tests/data",
+    "scripts",
+    ".tox",
+    ".eggs",
+    "build",
+]
+asdf_schema_tests_enabled = true
+asdf_schema_validate_default = false
 asdf_schema_root = "jwst/transforms/resources/schemas jwst/datamodels/schemas"
 junit_family = "xunit2"
 inputs_root = "jwst-pipeline"
@@ -219,11 +241,14 @@ text_file_format = "rst"
 doctest_plus = "enabled"
 doctest_rst = "enabled"
 addopts = "--show-capture=no --open-files --report-crds-context"
-filterwarnings = "\nignore:Models in math_functions:astropy.utils.exceptions.AstropyUserWarning"
+filterwarnings = [
+    "ignore:Models",
+    "in",
+    "math_functions:astropy.utils.exceptions.AstropyUserWarning",
+]
 
 [tool.coverage]
 run = { omit = [
-    "",
     "jwst/conftest.py",
     "jwst/setup.py",
     "jwst/tests/test*",
@@ -238,7 +263,6 @@ run = { omit = [
     "*/docs/*",
 ] }
 report = { exclude_lines = [
-    "",
     "pragma: no cover",
     "if self.debug:",
     "except ImportError",

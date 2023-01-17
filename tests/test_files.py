@@ -6,7 +6,7 @@ TEST_DIRECTORY = Path(__file__).parent / "data"
 
 
 def test_read_python_file():
-    statements = read_python_file(TEST_DIRECTORY / "input" / "crds" / "setup.py")
+    statements = read_python_file(TEST_DIRECTORY / "input" / "setup_py" / "setup.py")
     assert statements == [
         "import sys",
         "import glob",
@@ -45,7 +45,7 @@ def test_read_python_file():
 
 
 def test_setup_py():
-    setup_parameters = read_setup_py(TEST_DIRECTORY / "input" / "crds" / "setup.py")
+    setup_parameters = read_setup_py(TEST_DIRECTORY / "input" / "setup_py" / "setup.py")
     assert setup_parameters == {
         "name": "crds",
         "provides": ["crds"],
