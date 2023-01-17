@@ -170,9 +170,15 @@ class ConfigurationTable(MutableMapping, ABC):
                 if desired_type is not None and not isinstance(desired_type, Mapping)
                 else ConfigurationSubTable
             )
-            if (
-                hasattr(desired_type, "__origin__")
-                and desired_type.__origin__.__name__ == "Union"
+            if hasattr(desired_type, "__origin__") and (
+                (
+                    hasattr(desired_type.__origin__, "__name__")
+                    and desired_type.__origin__.__name__ == "Union"
+                )
+                or (
+                    hasattr(desired_type.__origin__, "_name")
+                    and desired_type.__origin__._name == "Union"
+                )
             ):
                 values = []
                 errors = []
