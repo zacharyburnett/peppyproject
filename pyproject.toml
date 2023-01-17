@@ -9,7 +9,7 @@ classifiers = []
 dependencies = [
     'ini2toml[full]',
     'tomli-w',
-    'typepigeon>=2.0.0',
+    'typepigeon>=2.0.1',
 ]
 dynamic = ['version']
 
