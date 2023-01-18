@@ -2,7 +2,7 @@
 name = 'peppyproject'
 description = 'PEP621-compliant `pyproject.toml`'
 readme = { text = 'create a PEP621-compliant `pyproject.toml` file from existing build configuration', content-type = 'text/plain' }
-requires-python = '>=3.8'
+requires-python = '>=3.9'
 license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
 classifiers = []

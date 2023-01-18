@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from peppyproject.tools.base import ToolTable
 
@@ -11,19 +11,19 @@ class SetuptoolsTable(ToolTable):
 
     name = "tool.setuptools"
     fields = {
-        "platforms": List[str],
+        "platforms": list[str],
         # If not specified, ``setuptools`` will try to guess a reasonable default for the package
         "zip-safe": bool,
-        "eager-resources": List[str],
-        "py-modules": List[str],
-        "packages": Union[List[str], Dict[str, Any], str],
+        "eager-resources": list[str],
+        "py-modules": list[str],
+        "packages": Union[list[str], dict[str, Any], str],
         # Used when explicitly listing ``packages``
-        "package-dir": Union[Dict[str, Any]],
+        "package-dir": Union[dict[str, Any]],
         # See https://setuptools.pypa.io/en/latest/userguide/datafiles.html
-        "package-data": Dict[str, List[str]],
+        "package-data": dict[str, list[str]],
         # ``True`` by default
         "include-package-data": bool,
-        "exclude-package-data": Dict[str, List[str]],
+        "exclude-package-data": dict[str, list[str]],
         # Provisional - likely to change with PEP 639 (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-        "license-files": List[str],
+        "license-files": list[str],
     }

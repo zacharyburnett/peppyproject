@@ -5,7 +5,7 @@ import re
 import warnings
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Mapping
+from typing import Any, Mapping
 
 SETUP_CFG_INDENT = "    "
 SETUP_CFG = {
@@ -39,11 +39,11 @@ PYTHON_LINE = {
 
 
 def python_statement(
-    lines: List[str],
+    lines: list[str],
     index: int = 0,
     current_statement: str = None,
-    statements: List[str] = None,
-) -> Tuple[List[str], int]:
+    statements: list[str] = None,
+) -> tuple[list[str], int]:
     if current_statement is None:
         current_statement = ""
 
@@ -90,8 +90,8 @@ def python_statement(
 
 
 def parse_function_parameters(
-    parameter_string: str, variables: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    parameter_string: str, variables: dict[str, Any] = None,
+) -> dict[str, Any]:
     if variables is None:
         variables = {}
 
@@ -118,10 +118,10 @@ def parse_function_parameters(
             value = {
                 "find": parse_function_parameters(
                     parameter_string=value.split("find_packages(", 1)[-1].rsplit(
-                        ")", 1
+                        ")", 1,
                     )[0],
                     variables=variables,
-                )
+                ),
             }
 
         function_parameters[name] = value
@@ -144,7 +144,7 @@ def parse_function_parameters(
     return function_parameters
 
 
-def read_python_file(filename: PathLike) -> List[str]:
+def read_python_file(filename: PathLike) -> list[str]:
     if not isinstance(filename, Path):
         filename = Path(filename)
 
@@ -155,7 +155,7 @@ def read_python_file(filename: PathLike) -> List[str]:
     index = 0
     while index < len(lines):
         statements, index = python_statement(
-            lines=lines, index=index, statements=statements
+            lines=lines, index=index, statements=statements,
         )
 
     statements = [statement for statement in statements if len(statement) > 0]
@@ -175,7 +175,7 @@ def read_python_file(filename: PathLike) -> List[str]:
     return statements
 
 
-def read_setup_py(filename: PathLike) -> Dict[str, Any]:
+def read_setup_py(filename: PathLike) -> dict[str, Any]:
     statements = read_python_file(filename)
 
     setup_parameters = {}

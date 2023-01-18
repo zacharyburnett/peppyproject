@@ -1,17 +1,16 @@
-import warnings
 from abc import ABC
 from configparser import ConfigParser
 from os import PathLike
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, Iterator, Mapping, MutableMapping, Collection
+from typing import Any, Collection, Iterator, Mapping, MutableMapping
 
 import tomli
 import tomli_w
 import typepigeon
 from ini2toml.api import Translator
 
-from peppyproject.files import SETUP_CFG, read_setup_py, SETUP_CFG_INDENT
+from peppyproject.files import SETUP_CFG, SETUP_CFG_INDENT, read_setup_py
 
 
 def value_to_ini_str(value: Any, indent: str = SETUP_CFG_INDENT) -> str:
@@ -36,7 +35,7 @@ class ConfigurationTable(MutableMapping, ABC):
     """
 
     name: str
-    fields: Dict[str, Any]
+    fields: dict[str, Any]
     start_with_placeholders: bool = True
 
     def __init__(self, **kwargs):
@@ -61,8 +60,8 @@ class ConfigurationTable(MutableMapping, ABC):
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif (
-            filename.suffix.lower() in [".cfg", ".ini"]
-            or filename.name.lower() == "setup.py"
+                filename.suffix.lower() in [".cfg", ".ini"]
+                or filename.name.lower() == "setup.py"
         ):
             if filename.suffix.lower() in [".cfg", ".ini"]:
                 with open(filename) as configuration_file:
@@ -82,7 +81,7 @@ class ConfigurationTable(MutableMapping, ABC):
                 with NamedTemporaryFile() as temporary_file:
                     with open(temporary_file.name, "w") as setup_cfg_file:
                         setup_cfg.write(setup_cfg_file)
-                    with open(temporary_file.name, "r") as setup_cfg_file:
+                    with open(temporary_file.name) as setup_cfg_file:
                         ini_string = setup_cfg_file.read()
                 profile_name = "setup.cfg"
             toml_string = Translator().translate(
@@ -99,25 +98,24 @@ class ConfigurationTable(MutableMapping, ABC):
                     ] = file_configuration["project"]["homepage"]
                     del file_configuration["project"]["homepage"]
             if setup_py is not None:
-                if "tool" in file_configuration:
-                    if "setuptools" in file_configuration["tool"]:
-                        if "extras-require" in file_configuration["tool"]["setuptools"]:
-                            if "project" not in file_configuration:
-                                file_configuration["project"] = ConfigurationSubTable()
-                            file_configuration["project"][
-                                "optional-dependencies"
-                            ] = setup_py["extras_require"]
-                            del file_configuration["tool"]["setuptools"][
-                                "extras-require"
-                            ]
-                        if "package-data" in file_configuration["tool"]["setuptools"]:
-                            if "project" not in file_configuration:
-                                file_configuration["tool"][
-                                    "setuptools"
-                                ] = ConfigurationSubTable()
-                            file_configuration["tool"]["setuptools"][
-                                "package-data"
-                            ] = setup_py["package_data"]
+                if "tool" in file_configuration and "setuptools" in file_configuration["tool"]:
+                    if "extras-require" in file_configuration["tool"]["setuptools"]:
+                        if "project" not in file_configuration:
+                            file_configuration["project"] = ConfigurationSubTable()
+                        file_configuration["project"][
+                            "optional-dependencies"
+                        ] = setup_py["extras_require"]
+                        del file_configuration["tool"]["setuptools"][
+                            "extras-require"
+                        ]
+                    if "package-data" in file_configuration["tool"]["setuptools"]:
+                        if "project" not in file_configuration:
+                            file_configuration["tool"][
+                                "setuptools"
+                            ] = ConfigurationSubTable()
+                        file_configuration["tool"]["setuptools"][
+                            "package-data"
+                        ] = setup_py["package_data"]
             base_table = cls.name.split(".", 1)[0]
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
@@ -135,8 +133,8 @@ class ConfigurationTable(MutableMapping, ABC):
         file_configurations = {}
         for filename in directory.iterdir():
             if filename.is_file() and (
-                filename.name.lower() in known_filenames
-                or filename.suffix.lower() in known_suffixes
+                    filename.name.lower() in known_filenames
+                    or filename.suffix.lower() in known_suffixes
             ):
                 file_configuration = cls.from_file(filename)
                 if len(file_configuration) > 0:
@@ -171,14 +169,14 @@ class ConfigurationTable(MutableMapping, ABC):
                 else ConfigurationSubTable
             )
             if hasattr(desired_type, "__origin__") and (
-                (
-                    hasattr(desired_type.__origin__, "__name__")
-                    and desired_type.__origin__.__name__ == "Union"
-                )
-                or (
-                    hasattr(desired_type.__origin__, "_name")
-                    and desired_type.__origin__._name == "Union"
-                )
+                    (
+                            hasattr(desired_type.__origin__, "__name__")
+                            and desired_type.__origin__.__name__ == "Union"
+                    )
+                    or (
+                            hasattr(desired_type.__origin__, "_name")
+                            and desired_type.__origin__._name == "Union"
+                    )
             ):
                 values = []
                 errors = []
@@ -196,12 +194,12 @@ class ConfigurationTable(MutableMapping, ABC):
                         for sub_key, sub_value in value.items():
                             if sub_key in desired_type:
                                 if (
-                                    key not in self.__configuration
-                                    or self.__configuration[key] is None
+                                        key not in self.__configuration
+                                        or self.__configuration[key] is None
                                 ):
                                     self.__configuration[key] = subtable_class()
                                 self[key][sub_key] = typepigeon.to_type(
-                                    sub_value, desired_type[sub_key]
+                                    sub_value, desired_type[sub_key],
                                 )
                     else:
                         self.__configuration[key] = subtable_class()
@@ -233,7 +231,7 @@ class ConfigurationTable(MutableMapping, ABC):
                 length
                 for length in lengths.values()
                 if not self.start_with_placeholders or length > 0
-            ]
+            ],
         )
 
     def to_toml(self) -> str:
@@ -244,10 +242,10 @@ class ConfigurationTable(MutableMapping, ABC):
             key: value
             for key, value in self.__configuration.items()
             if value is not None
-            and (
-                not self.start_with_placeholders
-                or (not hasattr(value, "__len__") or len(value) > 0)
-            )
+               and (
+                       not self.start_with_placeholders
+                       or (not hasattr(value, "__len__") or len(value) > 0)
+               )
         }
         return repr(configuration_string)
 
@@ -258,7 +256,7 @@ class ConfigurationSubTable(ConfigurationTable):
     start_with_placeholders = False
 
 
-def to_dict(value: Mapping) -> Dict:
+def to_dict(value: Mapping) -> dict:
     output = {}
     if isinstance(value, Mapping):
         for entry_name, entry in value.items():
@@ -275,6 +273,6 @@ def to_dict(value: Mapping) -> Dict:
 
 def table_to_toml(table_name: str, table: MutableMapping[str, Any]) -> str:
     table = {
-        table_name: {key: value for key, value in table.items() if value is not None}
+        table_name: {key: value for key, value in table.items() if value is not None},
     }
     return tomli_w.dumps(to_dict(table))

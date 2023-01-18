@@ -1,6 +1,6 @@
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Union
+from typing import Any, Mapping, Union
 
 import typepigeon
 
@@ -20,19 +20,19 @@ class ProjectMetadata(ConfigurationTable):
         "name": str,
         "version": str,
         "description": str,
-        "readme": Union[Dict[str, str], str],
+        "readme": Union[dict[str, str], str],
         "requires-python": str,
-        "license": Dict[str, str],
-        "authors": List[Dict[str, str]],
-        "keywords": List[str],
-        "classifiers": List[str],
-        "urls": Dict[str, str],
-        "scripts": Dict[str, str],
-        "gui-scripts": Dict[str, str],
-        "entry-points": Dict[str, Dict[str, str]],
-        "dependencies": List[str],
-        "optional-dependencies": Dict[str, List[str]],
-        "dynamic": List[str],
+        "license": dict[str, str],
+        "authors": list[dict[str, str]],
+        "keywords": list[str],
+        "classifiers": list[str],
+        "urls": dict[str, str],
+        "scripts": dict[str, str],
+        "gui-scripts": dict[str, str],
+        "entry-points": dict[str, dict[str, str]],
+        "dependencies": list[str],
+        "optional-dependencies": dict[str, list[str]],
+        "dynamic": list[str],
     }
 
     def __setitem__(self, key: str, value: Any):
@@ -40,7 +40,7 @@ class ProjectMetadata(ConfigurationTable):
         directory = Path(
             self._ConfigurationTable__from_directory
             if hasattr(self, "_ConfigurationTable__from_directory")
-            else "."
+            else ".",
         )
         filenames = [filename.name for filename in directory.iterdir()]
         if value is not None:
@@ -72,22 +72,16 @@ class ProjectMetadata(ConfigurationTable):
                     if len(license_files) > 0:
                         if len(license_files) > 1:
                             warnings.warn(
-                                f"multiple license files found; {license_files}"
+                                f"multiple license files found; {license_files}",
                             )
                         license_filename = license_files[0]
-                if license_filename is not None:
-                    value = {"file": license_filename, "content-type": "text/plain"}
-                else:
-                    value = None
+                value = {"file": license_filename, "content-type": "text/plain"} if license_filename is not None else None
             elif key == "readme":
                 if isinstance(value, Mapping) and "text" in value:
                     value = value["text"]
                 if isinstance(value, str):
                     if value in filenames:
-                        if Path(value).suffix.lower() == ".md":
-                            content_type = "text/markdown"
-                        else:
-                            content_type = "text/x-rst"
+                        content_type = "text/markdown" if Path(value).suffix.lower() == ".md" else "text/x-rst"
                         value = {"file": value, "content-type": content_type}
                     else:
                         readme_files = [
@@ -98,7 +92,7 @@ class ProjectMetadata(ConfigurationTable):
                         if len(readme_files) > 0:
                             if len(readme_files) > 1:
                                 warnings.warn(
-                                    f"multiple README files found; {readme_files}"
+                                    f"multiple README files found; {readme_files}",
                                 )
                             value = readme_files[0]
                         else:
@@ -110,7 +104,7 @@ class ProjectMetadata(ConfigurationTable):
                     value[extra] = [
                         extra_dependency
                         for extra_dependency in typepigeon.to_type(
-                            value[extra], generic.__args__[1]
+                            value[extra], generic.__args__[1],
                         )
                         if len(extra_dependency) > 0
                     ]
@@ -140,7 +134,7 @@ class BuildConfiguration(ConfigurationTable):
 
     name = "build-system"
     fields = {
-        "requires": List[str],
+        "requires": list[str],
         "build-backend": str,
     }
 
