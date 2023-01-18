@@ -8,35 +8,45 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: 'pyproject.toml'
-      - run: pip install ruff
-      - run: ruff .
-  tests:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: False
       matrix:
-        python: [ '3.8', '3.9', '3.10', '3.11', '3.12-dev' ]
-        os: [ ubuntu-latest, macos-latest ]
-    continue-on-error: ${{ matrix.python-version == '3.12-dev' }}
+        toxenv: [ check-style, check-build ]
+        python: [ '3.11' ]
+        os: [ ubuntu-latest ]
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
-      - run: pip install ".[test]" pytest-xdist pytest-cov
-      - run: pytest -n auto --cov=. --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml
+      - run: pip install tox
+      - uses: actions/checkout@v3
+      - run: tox -e ${{ matrix.toxenv }}
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: False
+      matrix:
+        toxenv: [ test-xdist ]
+        python: [ '3.8', '3.9', '3.10', '3.11', '3.12-dev' ]
+        os: [ ubuntu-latest, macos-latest ]
+        include:
+          - toxenv: test-cov-xdist
+            os: ubuntu-latest
+            python: '3.11'
+    continue-on-error: ${{ matrix.python == '3.12-dev' }}
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          cache: 'pip'
+          cache-dependency-path: 'pyproject.toml'
+      - run: pip install tox
+      - uses: actions/checkout@v3
+      - run: tox -e ${{ matrix.toxenv }}
       - uses: codecov/codecov-action@v3
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.10'
+        if: contains(matrix.toxenv, '-cov')
         with:
           file: ./coverage.xml
           flags: unit
