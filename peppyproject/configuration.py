@@ -3,11 +3,7 @@ from pathlib import Path
 from typing import Iterator, Mapping
 
 from peppyproject.base import ConfigurationTable
-from peppyproject.tables import (
-    BuildConfiguration,
-    ProjectMetadata,
-    ToolsTable,
-)
+from peppyproject.tables import BuildConfiguration, ProjectMetadata, ToolsTable
 
 
 class PyProjectConfiguration(Mapping):
