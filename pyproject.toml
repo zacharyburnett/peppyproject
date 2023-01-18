@@ -5,7 +5,15 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 requires-python = '>=3.9'
 license = { file = 'LICENSE' }
 authors = [{ name = 'Zach Burnett' }]
-classifiers = []
+classifiers = [
+  "License :: OSI Approved :: GPL License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
 dependencies = [
     'ini2toml[full]',
     'tomli',
