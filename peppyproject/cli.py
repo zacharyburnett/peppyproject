@@ -16,7 +16,7 @@ def peppyproject_command(input: Path = None, output: Path = None):
     else:
         if not output.parent.exists():
             output.mkdir(parents=True, exist_ok=True)
-        with open(output, 'w') as toml_file:
+        with open(output, "w") as toml_file:
             toml_file.write(toml_string)
 
 

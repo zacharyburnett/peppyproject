@@ -17,6 +17,7 @@ def test_to_toml(directory):
     toml_string = configuration.to_toml()
 
     with open(
-        TEST_DIRECTORY / "reference" / directory / "pyproject.toml", "rb",
+        TEST_DIRECTORY / "reference" / directory / "pyproject.toml",
+        "rb",
     ) as toml_file:
         assert tomli.loads(toml_string) == tomli.load(toml_file)

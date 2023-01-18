@@ -75,13 +75,21 @@ class ProjectMetadata(ConfigurationTable):
                                 f"multiple license files found; {license_files}",
                             )
                         license_filename = license_files[0]
-                value = {"file": license_filename, "content-type": "text/plain"} if license_filename is not None else None
+                value = (
+                    {"file": license_filename, "content-type": "text/plain"}
+                    if license_filename is not None
+                    else None
+                )
             elif key == "readme":
                 if isinstance(value, Mapping) and "text" in value:
                     value = value["text"]
                 if isinstance(value, str):
                     if value in filenames:
-                        content_type = "text/markdown" if Path(value).suffix.lower() == ".md" else "text/x-rst"
+                        content_type = (
+                            "text/markdown"
+                            if Path(value).suffix.lower() == ".md"
+                            else "text/x-rst"
+                        )
                         value = {"file": value, "content-type": content_type}
                     else:
                         readme_files = [
@@ -104,7 +112,8 @@ class ProjectMetadata(ConfigurationTable):
                     value[extra] = [
                         extra_dependency
                         for extra_dependency in typepigeon.to_type(
-                            value[extra], generic.__args__[1],
+                            value[extra],
+                            generic.__args__[1],
                         )
                         if len(extra_dependency) > 0
                     ]

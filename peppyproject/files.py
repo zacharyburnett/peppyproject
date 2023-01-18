@@ -90,7 +90,8 @@ def python_statement(
 
 
 def parse_function_parameters(
-    parameter_string: str, variables: dict[str, Any] = None,
+    parameter_string: str,
+    variables: dict[str, Any] = None,
 ) -> dict[str, Any]:
     if variables is None:
         variables = {}
@@ -118,7 +119,8 @@ def parse_function_parameters(
             value = {
                 "find": parse_function_parameters(
                     parameter_string=value.split("find_packages(", 1)[-1].rsplit(
-                        ")", 1,
+                        ")",
+                        1,
                     )[0],
                     variables=variables,
                 ),
@@ -155,7 +157,9 @@ def read_python_file(filename: PathLike) -> list[str]:
     index = 0
     while index < len(lines):
         statements, index = python_statement(
-            lines=lines, index=index, statements=statements,
+            lines=lines,
+            index=index,
+            statements=statements,
         )
 
     statements = [statement for statement in statements if len(statement) > 0]

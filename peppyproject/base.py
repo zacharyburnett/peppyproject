@@ -60,8 +60,8 @@ class ConfigurationTable(MutableMapping, ABC):
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif (
-                filename.suffix.lower() in [".cfg", ".ini"]
-                or filename.name.lower() == "setup.py"
+            filename.suffix.lower() in [".cfg", ".ini"]
+            or filename.name.lower() == "setup.py"
         ):
             if filename.suffix.lower() in [".cfg", ".ini"]:
                 with open(filename) as configuration_file:
@@ -98,16 +98,17 @@ class ConfigurationTable(MutableMapping, ABC):
                     ] = file_configuration["project"]["homepage"]
                     del file_configuration["project"]["homepage"]
             if setup_py is not None:
-                if "tool" in file_configuration and "setuptools" in file_configuration["tool"]:
+                if (
+                    "tool" in file_configuration
+                    and "setuptools" in file_configuration["tool"]
+                ):
                     if "extras-require" in file_configuration["tool"]["setuptools"]:
                         if "project" not in file_configuration:
                             file_configuration["project"] = ConfigurationSubTable()
                         file_configuration["project"][
                             "optional-dependencies"
                         ] = setup_py["extras_require"]
-                        del file_configuration["tool"]["setuptools"][
-                            "extras-require"
-                        ]
+                        del file_configuration["tool"]["setuptools"]["extras-require"]
                     if "package-data" in file_configuration["tool"]["setuptools"]:
                         if "project" not in file_configuration:
                             file_configuration["tool"][
@@ -133,8 +134,8 @@ class ConfigurationTable(MutableMapping, ABC):
         file_configurations = {}
         for filename in directory.iterdir():
             if filename.is_file() and (
-                    filename.name.lower() in known_filenames
-                    or filename.suffix.lower() in known_suffixes
+                filename.name.lower() in known_filenames
+                or filename.suffix.lower() in known_suffixes
             ):
                 file_configuration = cls.from_file(filename)
                 if len(file_configuration) > 0:
@@ -169,14 +170,14 @@ class ConfigurationTable(MutableMapping, ABC):
                 else ConfigurationSubTable
             )
             if hasattr(desired_type, "__origin__") and (
-                    (
-                            hasattr(desired_type.__origin__, "__name__")
-                            and desired_type.__origin__.__name__ == "Union"
-                    )
-                    or (
-                            hasattr(desired_type.__origin__, "_name")
-                            and desired_type.__origin__._name == "Union"
-                    )
+                (
+                    hasattr(desired_type.__origin__, "__name__")
+                    and desired_type.__origin__.__name__ == "Union"
+                )
+                or (
+                    hasattr(desired_type.__origin__, "_name")
+                    and desired_type.__origin__._name == "Union"
+                )
             ):
                 values = []
                 errors = []
@@ -194,12 +195,13 @@ class ConfigurationTable(MutableMapping, ABC):
                         for sub_key, sub_value in value.items():
                             if sub_key in desired_type:
                                 if (
-                                        key not in self.__configuration
-                                        or self.__configuration[key] is None
+                                    key not in self.__configuration
+                                    or self.__configuration[key] is None
                                 ):
                                     self.__configuration[key] = subtable_class()
                                 self[key][sub_key] = typepigeon.to_type(
-                                    sub_value, desired_type[sub_key],
+                                    sub_value,
+                                    desired_type[sub_key],
                                 )
                     else:
                         self.__configuration[key] = subtable_class()
@@ -242,10 +244,10 @@ class ConfigurationTable(MutableMapping, ABC):
             key: value
             for key, value in self.__configuration.items()
             if value is not None
-               and (
-                       not self.start_with_placeholders
-                       or (not hasattr(value, "__len__") or len(value) > 0)
-               )
+            and (
+                not self.start_with_placeholders
+                or (not hasattr(value, "__len__") or len(value) > 0)
+            )
         }
         return repr(configuration_string)
 
