@@ -23,8 +23,8 @@ jobs:
     strategy:
       fail-fast: False
       matrix:
-        python: [ 'pypy-3.7', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12-dev' ]
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python: [ '3.8', '3.9', '3.10', '3.11', '3.12-dev' ]
+        os: [ ubuntu-latest, macos-latest ]
     continue-on-error: ${{ matrix.python-version == '3.12-dev' }}
     steps:
       - uses: actions/checkout@v3
