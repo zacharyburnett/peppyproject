@@ -189,10 +189,6 @@ class ConfigurationTable(MutableMapping, ABC):
                         errors.append(error)
                 if len(values) == 0:
                     raise RuntimeError(";".join(errors))
-                if len(values) > 1:
-                    warnings.warn(
-                        f'multiple possible options for parsing "{value}"; {values}'
-                    )
                 self.__configuration[key] = values[0]
             else:
                 if isinstance(desired_type, Mapping) and isinstance(value, Mapping):
