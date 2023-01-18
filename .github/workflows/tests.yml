@@ -15,13 +15,13 @@ jobs:
         python: [ '3.11' ]
         os: [ ubuntu-latest ]
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
       - run: pip install tox
-      - uses: actions/checkout@v3
       - run: tox -e ${{ matrix.toxenv }}
   tests:
     runs-on: ${{ matrix.os }}
@@ -37,13 +37,13 @@ jobs:
             python: '3.11'
     continue-on-error: ${{ matrix.python == '3.12-dev' }}
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
       - run: pip install tox
-      - uses: actions/checkout@v3
       - run: tox -e ${{ matrix.toxenv }}
       - uses: codecov/codecov-action@v3
         if: contains(matrix.toxenv, '-cov')
