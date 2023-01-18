@@ -1,4 +1,3 @@
-from os import PathLike
 from pathlib import Path
 from typing import Iterator, Mapping
 
@@ -12,10 +11,10 @@ class PyProjectConfiguration(Mapping):
     """
 
     def __init__(
-        self,
-        project: ProjectMetadata = None,
-        build_system: BuildConfiguration = None,
-        tool: ToolsTable = None,
+            self,
+            project: ProjectMetadata = None,
+            build_system: BuildConfiguration = None,
+            tool: ToolsTable = None,
     ):
         if project is None:
             project = ProjectMetadata()
@@ -30,7 +29,7 @@ class PyProjectConfiguration(Mapping):
         }
 
     @classmethod
-    def from_directory(cls, directory: PathLike) -> "PyProjectConfiguration":
+    def from_directory(cls, directory: str) -> "PyProjectConfiguration":
         if not isinstance(directory, Path):
             directory = Path(directory)
 
@@ -43,8 +42,13 @@ class PyProjectConfiguration(Mapping):
     def __getitem__(self, table: str) -> ConfigurationTable:
         return self.__tables[table]
 
-    def to_toml(self) -> str:
-        return "\n".join(table.to_toml() for table in self.__tables.values())
+    @property
+    def toml(self) -> str:
+        return "\n".join(table.toml for table in self.__tables.values())
+
+    def to_toml(self, filename: str):
+        with open(filename, 'w') as toml_file:
+            toml_file.write(self.toml)
 
     def __len__(self) -> int:
         return len(self.__tables)

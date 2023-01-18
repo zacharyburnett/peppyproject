@@ -10,7 +10,7 @@ def peppyproject_command(input: Path = None, output: Path = None):
         input = Path.cwd()
 
     configuration = PyProjectConfiguration.from_directory(directory=input)
-    toml_string = configuration.to_toml()
+    toml_string = configuration.toml()
     if output is None:
         print(toml_string)
     else:

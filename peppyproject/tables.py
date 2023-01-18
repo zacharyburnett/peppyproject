@@ -186,7 +186,8 @@ class ToolsTable(ConfigurationTable):
                 else:
                     self[key] = value
 
-    def to_toml(self) -> str:
+    @property
+    def toml(self) -> str:
         tables = self._ConfigurationTable__configuration
         for table_name, table in tables.items():
             if isinstance(table, ConfigurationTable):

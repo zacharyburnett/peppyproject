@@ -3,7 +3,6 @@ import ast
 import contextlib
 import re
 import warnings
-from os import PathLike
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -146,7 +145,7 @@ def parse_function_parameters(
     return function_parameters
 
 
-def read_python_file(filename: PathLike) -> list[str]:
+def read_python_file(filename: str) -> list[str]:
     if not isinstance(filename, Path):
         filename = Path(filename)
 
@@ -179,7 +178,7 @@ def read_python_file(filename: PathLike) -> list[str]:
     return statements
 
 
-def read_setup_py(filename: PathLike) -> dict[str, Any]:
+def read_setup_py(filename: str) -> dict[str, Any]:
     statements = read_python_file(filename)
 
     setup_parameters = {}

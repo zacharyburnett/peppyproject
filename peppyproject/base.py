@@ -1,6 +1,5 @@
 from abc import ABC
 from configparser import ConfigParser
-from os import PathLike
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Collection, Iterator, Mapping, MutableMapping
@@ -47,7 +46,7 @@ class ConfigurationTable(MutableMapping, ABC):
             self.update(kwargs)
 
     @classmethod
-    def from_file(cls, filename: PathLike) -> "ConfigurationTable":
+    def from_file(cls, filename: str) -> "ConfigurationTable":
         if not isinstance(filename, Path):
             filename = Path(filename)
 
@@ -60,8 +59,8 @@ class ConfigurationTable(MutableMapping, ABC):
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif (
-            filename.suffix.lower() in [".cfg", ".ini"]
-            or filename.name.lower() == "setup.py"
+                filename.suffix.lower() in [".cfg", ".ini"]
+                or filename.name.lower() == "setup.py"
         ):
             if filename.suffix.lower() in [".cfg", ".ini"]:
                 with open(filename) as configuration_file:
@@ -99,8 +98,8 @@ class ConfigurationTable(MutableMapping, ABC):
                     del file_configuration["project"]["homepage"]
             if setup_py is not None:
                 if (
-                    "tool" in file_configuration
-                    and "setuptools" in file_configuration["tool"]
+                        "tool" in file_configuration
+                        and "setuptools" in file_configuration["tool"]
                 ):
                     if "extras-require" in file_configuration["tool"]["setuptools"]:
                         if "project" not in file_configuration:
@@ -124,7 +123,7 @@ class ConfigurationTable(MutableMapping, ABC):
         return configuration
 
     @classmethod
-    def from_directory(cls, directory: PathLike) -> "ConfigurationTable":
+    def from_directory(cls, directory: str) -> "ConfigurationTable":
         if not isinstance(directory, Path):
             directory = Path(directory)
 
@@ -134,8 +133,8 @@ class ConfigurationTable(MutableMapping, ABC):
         file_configurations = {}
         for filename in directory.iterdir():
             if filename.is_file() and (
-                filename.name.lower() in known_filenames
-                or filename.suffix.lower() in known_suffixes
+                    filename.name.lower() in known_filenames
+                    or filename.suffix.lower() in known_suffixes
             ):
                 file_configuration = cls.from_file(filename)
                 if len(file_configuration) > 0:
@@ -170,14 +169,14 @@ class ConfigurationTable(MutableMapping, ABC):
                 else ConfigurationSubTable
             )
             if hasattr(desired_type, "__origin__") and (
-                (
-                    hasattr(desired_type.__origin__, "__name__")
-                    and desired_type.__origin__.__name__ == "Union"
-                )
-                or (
-                    hasattr(desired_type.__origin__, "_name")
-                    and desired_type.__origin__._name == "Union"
-                )
+                    (
+                            hasattr(desired_type.__origin__, "__name__")
+                            and desired_type.__origin__.__name__ == "Union"
+                    )
+                    or (
+                            hasattr(desired_type.__origin__, "_name")
+                            and desired_type.__origin__._name == "Union"
+                    )
             ):
                 values = []
                 errors = []
@@ -195,8 +194,8 @@ class ConfigurationTable(MutableMapping, ABC):
                         for sub_key, sub_value in value.items():
                             if sub_key in desired_type:
                                 if (
-                                    key not in self.__configuration
-                                    or self.__configuration[key] is None
+                                        key not in self.__configuration
+                                        or self.__configuration[key] is None
                                 ):
                                     self.__configuration[key] = subtable_class()
                                 self[key][sub_key] = typepigeon.to_type(
@@ -236,18 +235,23 @@ class ConfigurationTable(MutableMapping, ABC):
             ],
         )
 
-    def to_toml(self) -> str:
+    @property
+    def toml(self) -> str:
         return table_to_toml(table_name=self.name, table=self.__configuration)
+
+    def to_toml(self, filename: str):
+        with open(filename, 'w') as toml_file:
+            toml_file.write(self.toml)
 
     def __repr__(self) -> str:
         configuration_string = {
             key: value
             for key, value in self.__configuration.items()
             if value is not None
-            and (
-                not self.start_with_placeholders
-                or (not hasattr(value, "__len__") or len(value) > 0)
-            )
+               and (
+                       not self.start_with_placeholders
+                       or (not hasattr(value, "__len__") or len(value) > 0)
+               )
         }
         return repr(configuration_string)
 

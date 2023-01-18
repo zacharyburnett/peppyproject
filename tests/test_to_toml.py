@@ -14,7 +14,7 @@ def test_to_toml(directory):
         TEST_DIRECTORY / "input" / directory,
     )
 
-    toml_string = configuration.to_toml()
+    toml_string = configuration.toml
 
     with open(
         TEST_DIRECTORY / "reference" / directory / "pyproject.toml",

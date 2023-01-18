@@ -11,8 +11,18 @@ configuration (`setup.cfg`, `setup.py`, `tox.ini`, etc.).
 
 ```commandline
 pip install peppyproject
+```
+
+```commandline
 peppyproject --input ./my_python_project --output new-pyproject.toml
 ```
 
 `peppyproject` uses `ini2toml[full]` to read `setup.cfg` and INI files, and `ast.literal_eval()` to read and parse
 a `setup.py` file.
+
+```python
+from peppyproject import PyProjectConfiguration
+
+configuration = PyProjectConfiguration.from_directory('./my_python_project')
+configuration.to_toml('new-pyproject.toml')
+```
