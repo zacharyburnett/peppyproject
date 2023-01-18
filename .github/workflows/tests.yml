@@ -8,6 +8,7 @@ on:
 
 jobs:
   check:
+    name: ${{ matrix.toxenv }} (Python ${{ matrix.python }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,6 +25,7 @@ jobs:
       - run: pip install tox
       - run: tox -e ${{ matrix.toxenv }}
   tests:
+    name: ${{ matrix.toxenv }} (Python ${{ matrix.python }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False
