@@ -16,10 +16,10 @@ class PyProjectConfiguration(Mapping):
     """
 
     def __init__(
-        self,
-        project: ProjectMetadata = None,
-        build_system: BuildConfiguration = None,
-        tool: ToolsTable = None,
+            self,
+            project: ProjectMetadata = None,
+            build_system: BuildConfiguration = None,
+            tool: ToolsTable = None,
     ):
         if project is None:
             project = ProjectMetadata()
