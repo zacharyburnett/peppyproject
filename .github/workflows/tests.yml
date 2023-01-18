@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        toxenv: [ check-style, check-build ]
+        toxenv: [ check-style, build-dist ]
         python: [ '3.11' ]
         os: [ ubuntu-latest ]
     steps:
