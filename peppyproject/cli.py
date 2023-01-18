@@ -5,11 +5,11 @@ import typer
 from peppyproject import PyProjectConfiguration
 
 
-def peppyproject_command(directory: Path = None, output: Path = None):
-    if directory is None:
-        directory = Path.cwd()
+def peppyproject_command(input: Path = None, output: Path = None):
+    if input is None:
+        input = Path.cwd()
 
-    configuration = PyProjectConfiguration.from_directory(directory=directory)
+    configuration = PyProjectConfiguration.from_directory(directory=input)
     toml_string = configuration.to_toml()
     if output is None:
         print(toml_string)
