@@ -7,33 +7,21 @@ on:
   pull_request:
 
 jobs:
-  check:
-    name: ${{ matrix.toxenv }} (Python ${{ matrix.python }}, ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        toxenv: [ check-style, build-dist ]
-        python: [ '3.11' ]
-        os: [ ubuntu-latest ]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-          cache: 'pip'
-          cache-dependency-path: 'pyproject.toml'
-      - run: pip install tox
-      - run: tox -e ${{ matrix.toxenv }}
   tests:
     name: ${{ matrix.toxenv }} (Python ${{ matrix.python }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: False
       matrix:
         toxenv: [ test-xdist ]
         python: [ '3.9', '3.10', '3.11', '3.12-dev' ]
         os: [ ubuntu-latest, macos-latest ]
         include:
+          - toxenv: check-style
+            os: ubuntu-latest
+            python: '3.11'
+          - toxenv: build-dist
+            os: ubuntu-latest
+            python: '3.11'
           - toxenv: test-cov-xdist
             os: ubuntu-latest
             python: '3.11'
