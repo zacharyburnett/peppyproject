@@ -189,10 +189,6 @@ class ConfigurationTable(MutableMapping, ABC):
         return self.__configuration[key]
 
     def __setitem__(self, key: str, value: Any):
-        if self.start_with_placeholders and key not in self.__configuration:
-            message = f'"{self.name}" table does not contain "{key}"'
-            raise KeyError(message)
-
         if key in self.fields:
             desired_type = self.fields[key]
             subtable_class = (
