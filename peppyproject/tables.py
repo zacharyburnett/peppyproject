@@ -38,7 +38,6 @@ class ProjectMetadata(ConfigurationTable):
     }
 
     def __setitem__(self, key: str, value: Any):
-        generic = self.fields[key]
         directory = Path(
             self._ConfigurationTable__from_directory
             if hasattr(self, "_ConfigurationTable__from_directory")
@@ -107,32 +106,34 @@ class ProjectMetadata(ConfigurationTable):
                             value = readme_files[0]
                         else:
                             value = {"text": value, "content-type": "text/plain"}
-            elif key == "optional-dependencies":
-                if not isinstance(value, generic.__origin__):
-                    value = typepigeon.to_type(value, generic)
-                for extra in value:
-                    value[extra] = [
-                        extra_dependency
-                        for extra_dependency in typepigeon.to_type(
-                            value[extra],
-                            generic.__args__[1],
-                        )
-                        if len(extra_dependency) > 0
-                    ]
-            elif key == "entry-points":
-                if not isinstance(value, generic.__origin__):
-                    value = typepigeon.to_type(value, generic)
-                for entry_point_location in value:
-                    entry_points = value[entry_point_location]
-                    if isinstance(entry_points, str) and "=" in entry_points:
-                        entry_points = [
-                            tuple(entry.strip() for entry in entry_point.split("="))
-                            for entry_point in entry_points.splitlines()
-                            if len(entry_point) > 0
+            elif key in self.fields:
+                generic = self.fields[key]
+                if key == "optional-dependencies":
+                    if not isinstance(value, generic.__origin__):
+                        value = typepigeon.to_type(value, generic)
+                    for extra in value:
+                        value[extra] = [
+                            extra_dependency
+                            for extra_dependency in typepigeon.to_type(
+                                value[extra],
+                                generic.__args__[1],
+                            )
+                            if len(extra_dependency) > 0
                         ]
-                        value[entry_point_location] = {
-                            key: value for key, value in entry_points
-                        }
+                elif key == "entry-points":
+                    if not isinstance(value, generic.__origin__):
+                        value = typepigeon.to_type(value, generic)
+                    for entry_point_location in value:
+                        entry_points = value[entry_point_location]
+                        if isinstance(entry_points, str) and "=" in entry_points:
+                            entry_points = [
+                                tuple(entry.strip() for entry in entry_point.split("="))
+                                for entry_point in entry_points.splitlines()
+                                if len(entry_point) > 0
+                            ]
+                            value[entry_point_location] = {
+                                key: value for key, value in entry_points
+                            }
 
         super().__setitem__(key, value)
 
