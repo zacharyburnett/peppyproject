@@ -38,10 +38,10 @@ PYTHON_LINE = {
 
 
 def python_statement(
-    lines: list[str],
-    index: int = 0,
-    current_statement: str = None,
-    statements: list[str] = None,
+        lines: list[str],
+        index: int = 0,
+        current_statement: str = None,
+        statements: list[str] = None,
 ) -> tuple[list[str], int]:
     if current_statement is None:
         current_statement = ""
@@ -60,8 +60,8 @@ def python_statement(
 
     # check if line continues
     if any(
-        line.endswith(continuing_character)
-        for continuing_character in PYTHON_LINE["continuing"]
+            line.endswith(continuing_character)
+            for continuing_character in PYTHON_LINE["continuing"]
     ):
         statements, index = python_statement(
             lines=lines,
@@ -79,7 +79,7 @@ def python_statement(
         current_statement += line
 
     if any(
-        line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
+            line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
     ) and any(
         statements[-1].endswith(continuing_character)
         for continuing_character in PYTHON_LINE["continuing"]
@@ -92,8 +92,8 @@ def python_statement(
 
 
 def parse_function_parameters(
-    parameter_string: str,
-    variables: dict[str, Any] = None,
+        parameter_string: str,
+        variables: dict[str, Any] = None,
 ) -> dict[str, Any]:
     if variables is None:
         variables = {}
@@ -176,12 +176,18 @@ def read_python_file(filename: str) -> list[str]:
     indices = []
     for index, statement in reversed(list(enumerate(statements))):
         if any(
-            statement.strip().endswith(continuing_character)
-            for continuing_character in PYTHON_LINE["continuing"]
+                statement.strip().endswith(continuing_character)
+                for continuing_character in PYTHON_LINE["continuing"]
         ):
             if index < len(statements) - 1:
                 statements[index] += statements[index + 1]
                 indices.append(index + 1)
+        elif any(
+                statement.strip() == ending_character
+                for ending_character in PYTHON_LINE["ending"]
+        ):
+            statements[index - 1] += statements[index]
+            indices.append(index)
 
     for index in indices:
         statements.pop(index)
@@ -235,7 +241,7 @@ def read_setup_py(filename: str) -> dict[str, Any]:
 
 
 def inify(
-    value: Any, value_name: str = None, section_name: str = None, indent: str = None
+        value: Any, value_name: str = None, section_name: str = None, indent: str = None
 ) -> Any:
     if indent is None:
         indent = ""
