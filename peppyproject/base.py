@@ -1,3 +1,4 @@
+import ast
 from abc import ABC
 from configparser import ConfigParser
 from pathlib import Path
@@ -76,9 +77,7 @@ class ConfigurationTable(MutableMapping, ABC):
                                                 value_section_name
                                                 == "options.packages.find"
                                             ):
-                                                value_section["namespaces"] = inify(
-                                                    False
-                                                )
+                                                value_section["namespaces"] = "False"
                                             else:
                                                 continue
                                         if (
@@ -114,11 +113,26 @@ class ConfigurationTable(MutableMapping, ABC):
                         "homepage"
                     ] = file_configuration["project"]["homepage"]
                     del file_configuration["project"]["homepage"]
-            if setup_py is not None:
-                if (
-                    "tool" in file_configuration
-                    and "setuptools" in file_configuration["tool"]
-                ):
+            if (
+                "tool" in file_configuration
+                and "setuptools" in file_configuration["tool"]
+            ):
+                if "packages" in file_configuration["tool"]["setuptools"]:
+                    if "find" in file_configuration["tool"]["setuptools"]["packages"]:
+                        if (
+                            "namespaces"
+                            in file_configuration["tool"]["setuptools"]["packages"][
+                                "find"
+                            ]
+                        ):
+                            file_configuration["tool"]["setuptools"]["packages"][
+                                "find"
+                            ]["namespaces"] = ast.literal_eval(
+                                file_configuration["tool"]["setuptools"]["packages"][
+                                    "find"
+                                ]["namespaces"]
+                            )
+                if setup_py is not None:
                     if "extras-require" in file_configuration["tool"]["setuptools"]:
                         if "project" not in file_configuration:
                             file_configuration["project"] = ConfigurationSubTable()

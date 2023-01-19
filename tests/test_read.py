@@ -207,7 +207,7 @@ def test_nested_inify():
     value_1 = inify_mapping({"packages": {"find": {"where": ["src"]}}}, name="options")
 
     assert value_1 == {
-        'options': {},
-        'options.packages': {},
-        'options.packages.find': '\nwhere = \n    src',
+        "options": {},
+        "options.packages": {},
+        "options.packages.find": "\nwhere = \n    src",
     }
