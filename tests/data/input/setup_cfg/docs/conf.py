@@ -13,13 +13,13 @@
 
 import datetime
 import importlib
-import os
 import sys
+import os
+from packaging.version import Version
 from configparser import ConfigParser
 
 import sphinx
 import stsci_rtd_theme
-from packaging.version import Version
 
 
 def setup(app):

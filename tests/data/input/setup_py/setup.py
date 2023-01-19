@@ -1,6 +1,7 @@
 #! /usr/bin/env python
-import glob
 import sys
+import glob
+
 from distutils.core import setup
 
 import setuptools
