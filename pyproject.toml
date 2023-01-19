@@ -10,7 +10,7 @@ dependencies = [
     "tomli",
     "tomli-w",
     "typepigeon>=2.0.1",
-    "typer[rich]",
+    "typer",
 ]
 dynamic = [
     'version',
