@@ -11,10 +11,10 @@ class PyProjectConfiguration(Mapping):
     """
 
     def __init__(
-            self,
-            project: ProjectMetadata = None,
-            build_system: BuildConfiguration = None,
-            tool: ToolsTable = None,
+        self,
+        project: ProjectMetadata = None,
+        build_system: BuildConfiguration = None,
+        tool: ToolsTable = None,
     ):
         if project is None:
             project = ProjectMetadata()
@@ -47,7 +47,7 @@ class PyProjectConfiguration(Mapping):
         return "\n".join(table.toml for table in self.__tables.values())
 
     def to_toml(self, filename: str):
-        with open(filename, 'w') as toml_file:
+        with open(filename, "w") as toml_file:
             toml_file.write(self.toml)
 
     def __len__(self) -> int:

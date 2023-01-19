@@ -4,9 +4,9 @@ import contextlib
 import re
 import warnings
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Collection, Mapping
 
-SETUP_CFG_INDENT = "    "
+SETUP_CFG_INDENT = " " * 4
 SETUP_CFG = {
     "metadata": {
         "name": "project.name",
@@ -32,7 +32,7 @@ SETUP_CFG = {
 }
 
 PYTHON_LINE = {
-    "continuing": ["\\", ",", "(", "{", "["],
+    "continuing": ["\\", ",", "(", "{", "[", ":"],
     "ending": [")", "}", "]"],
 }
 
@@ -80,6 +80,9 @@ def python_statement(
 
     if any(
         line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
+    ) and any(
+        statements[-1].endswith(continuing_character)
+        for continuing_character in PYTHON_LINE["continuing"]
     ):
         statements[-1] += current_statement
     else:
@@ -99,6 +102,13 @@ def parse_function_parameters(
 
     parameters = re.findall(r"(.+?=[^=]+),", parameter_string)
     keyword_arguments = re.findall(r"\*\*\w+", parameter_string)
+    parameter_index = 0
+    while parameter_index < len(parameters):
+        parameter = parameters[parameter_index].strip()
+        if parameter.startswith('"') or parameter.startswith("'"):
+            parameters[parameter_index - 1] += parameters.pop(parameter_index)
+        else:
+            parameter_index += 1
     for parameter in parameters:
         name, value = parameter.strip().split("=", 1)
         if "open(" in value:
@@ -169,8 +179,9 @@ def read_python_file(filename: str) -> list[str]:
             statement.strip().endswith(continuing_character)
             for continuing_character in PYTHON_LINE["continuing"]
         ):
-            statements[index] += statements[index + 1]
-            indices.append(index + 1)
+            if index < len(statements) - 1:
+                statements[index] += statements[index + 1]
+                indices.append(index + 1)
 
     for index in indices:
         statements.pop(index)
@@ -221,3 +232,24 @@ def read_setup_py(filename: str) -> dict[str, Any]:
             }
 
     return setup_parameters
+
+
+def inify(
+    value: Any, value_name: str = None, section_name: str = None, indent: str = None
+) -> Any:
+    if indent is None:
+        indent = ""
+    if isinstance(value, Mapping):
+        if value_name is not None and section_name is not None:
+            section_name = f"{section_name}.{value_name}"
+        else:
+            value = "\n" + "\n".join(
+                f'{key}{":" if "find" in value else " ="} {inify(value=entry, indent=indent + SETUP_CFG_INDENT)[1]}'
+                for key, entry in value.items()
+            )
+    elif isinstance(value, Collection) and not isinstance(value, str):
+        value = "\n" + "\n".join(f"{indent}{entry}" for entry in value)
+    else:
+        value = str(value)
+
+    return section_name, value

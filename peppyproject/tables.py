@@ -7,6 +7,8 @@ import typepigeon
 from peppyproject.base import ConfigurationTable, table_to_toml
 from peppyproject.tools import CoverageTable, SetuptoolsTable
 from peppyproject.tools.base import ToolTable
+from peppyproject.tools.flake8 import Flake8Table
+from peppyproject.tools.ruff import RuffTable
 
 
 class ProjectMetadata(ConfigurationTable):
@@ -157,6 +159,8 @@ class ToolsTable(ConfigurationTable):
     fields = {
         "setuptools": SetuptoolsTable,
         "coverage": CoverageTable,
+        "flake8": Flake8Table,
+        "ruff": RuffTable,
     }
     start_with_placeholders = False
 

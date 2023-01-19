@@ -2,30 +2,14 @@ from abc import ABC
 from configparser import ConfigParser
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Collection, Iterator, Mapping, MutableMapping
+from typing import Any, Iterator, Mapping, MutableMapping
 
 import tomli
 import tomli_w
 import typepigeon
 from ini2toml.api import Translator
 
-from peppyproject.files import SETUP_CFG, SETUP_CFG_INDENT, read_setup_py
-
-
-def value_to_ini_str(value: Any, indent: str = SETUP_CFG_INDENT) -> str:
-    if hasattr(value, "__len__") and len(value) == 0:
-        return ""
-    elif isinstance(value, str):
-        return value
-    elif isinstance(value, Mapping):
-        return "\n" + "\n".join(
-            f'{indent}{key}{":" if "find" in value else " ="} {value_to_ini_str(entry, indent=indent + SETUP_CFG_INDENT)}'
-            for key, entry in value.items()
-        )
-    elif isinstance(value, Collection):
-        return "\n" + "\n".join(f"{indent}{entry}" for entry in value)
-    else:
-        return str(value)
+from peppyproject.files import SETUP_CFG, inify, read_setup_py
 
 
 class ConfigurationTable(MutableMapping, ABC):
@@ -59,8 +43,8 @@ class ConfigurationTable(MutableMapping, ABC):
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif (
-                filename.suffix.lower() in [".cfg", ".ini"]
-                or filename.name.lower() == "setup.py"
+            filename.suffix.lower() in [".cfg", ".ini"]
+            or filename.name.lower() == "setup.py"
         ):
             if filename.suffix.lower() in [".cfg", ".ini"]:
                 with open(filename) as configuration_file:
@@ -71,12 +55,25 @@ class ConfigurationTable(MutableMapping, ABC):
                 setup_py = read_setup_py(filename)
                 setup_cfg = ConfigParser()
                 for section_name, section in SETUP_CFG.items():
-                    for key, value in setup_py.items():
-                        if key in section:
-                            value = value_to_ini_str(value)
-                            if section_name not in setup_cfg.sections():
-                                setup_cfg.add_section(section_name)
-                            setup_cfg.set(section_name, key, value)
+                    if section != "DEFAULT":
+                        for key, value in setup_py.items():
+                            if key in section:
+                                new_section_name, value = inify(
+                                    value=value,
+                                    value_name=key,
+                                    section_name=section_name,
+                                )
+                                if new_section_name not in setup_cfg.sections():
+                                    setup_cfg.add_section(new_section_name)
+                                if not isinstance(value, Mapping):
+                                    setup_cfg.set(new_section_name, key, value)
+                                else:
+                                    for entry_name, entry in value.items():
+                                        setup_cfg.set(
+                                            new_section_name,
+                                            entry_name,
+                                            inify(entry)[1],
+                                        )
                 with NamedTemporaryFile() as temporary_file:
                     with open(temporary_file.name, "w") as setup_cfg_file:
                         setup_cfg.write(setup_cfg_file)
@@ -98,8 +95,8 @@ class ConfigurationTable(MutableMapping, ABC):
                     del file_configuration["project"]["homepage"]
             if setup_py is not None:
                 if (
-                        "tool" in file_configuration
-                        and "setuptools" in file_configuration["tool"]
+                    "tool" in file_configuration
+                    and "setuptools" in file_configuration["tool"]
                 ):
                     if "extras-require" in file_configuration["tool"]["setuptools"]:
                         if "project" not in file_configuration:
@@ -133,8 +130,8 @@ class ConfigurationTable(MutableMapping, ABC):
         file_configurations = {}
         for filename in directory.iterdir():
             if filename.is_file() and (
-                    filename.name.lower() in known_filenames
-                    or filename.suffix.lower() in known_suffixes
+                filename.name.lower() in known_filenames
+                or filename.suffix.lower() in known_suffixes
             ):
                 file_configuration = cls.from_file(filename)
                 if len(file_configuration) > 0:
@@ -169,14 +166,14 @@ class ConfigurationTable(MutableMapping, ABC):
                 else ConfigurationSubTable
             )
             if hasattr(desired_type, "__origin__") and (
-                    (
-                            hasattr(desired_type.__origin__, "__name__")
-                            and desired_type.__origin__.__name__ == "Union"
-                    )
-                    or (
-                            hasattr(desired_type.__origin__, "_name")
-                            and desired_type.__origin__._name == "Union"
-                    )
+                (
+                    hasattr(desired_type.__origin__, "__name__")
+                    and desired_type.__origin__.__name__ == "Union"
+                )
+                or (
+                    hasattr(desired_type.__origin__, "_name")
+                    and desired_type.__origin__._name == "Union"
+                )
             ):
                 values = []
                 errors = []
@@ -194,8 +191,8 @@ class ConfigurationTable(MutableMapping, ABC):
                         for sub_key, sub_value in value.items():
                             if sub_key in desired_type:
                                 if (
-                                        key not in self.__configuration
-                                        or self.__configuration[key] is None
+                                    key not in self.__configuration
+                                    or self.__configuration[key] is None
                                 ):
                                     self.__configuration[key] = subtable_class()
                                 self[key][sub_key] = typepigeon.to_type(
@@ -240,7 +237,7 @@ class ConfigurationTable(MutableMapping, ABC):
         return table_to_toml(table_name=self.name, table=self.__configuration)
 
     def to_toml(self, filename: str):
-        with open(filename, 'w') as toml_file:
+        with open(filename, "w") as toml_file:
             toml_file.write(self.toml)
 
     def __repr__(self) -> str:
@@ -248,10 +245,10 @@ class ConfigurationTable(MutableMapping, ABC):
             key: value
             for key, value in self.__configuration.items()
             if value is not None
-               and (
-                       not self.start_with_placeholders
-                       or (not hasattr(value, "__len__") or len(value) > 0)
-               )
+            and (
+                not self.start_with_placeholders
+                or (not hasattr(value, "__len__") or len(value) > 0)
+            )
         }
         return repr(configuration_string)
 
