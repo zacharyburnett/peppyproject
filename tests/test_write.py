@@ -9,15 +9,15 @@ TEST_DIRECTORY = Path(__file__).parent / "data"
 
 
 @pytest.mark.parametrize("directory", ["pyproject_toml", "setup_cfg", "setup_py"])
-def test_to_toml(directory):
+def test_to_file(directory):
     configuration = PyProjectConfiguration.from_directory(
         TEST_DIRECTORY / "input" / directory,
     )
 
-    toml_string = configuration.toml
+    configuration_string = configuration.configuration
 
     with open(
         TEST_DIRECTORY / "reference" / directory / "pyproject.toml",
         "rb",
-    ) as toml_file:
-        assert tomli.loads(toml_string) == tomli.load(toml_file)
+    ) as configuration_file:
+        assert tomli.loads(configuration_string) == tomli.load(configuration_file)

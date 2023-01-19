@@ -1,5 +1,5 @@
 import numpy
-from setuptools import setup, find_packages, Extension
+from setuptools import Extension, find_packages, setup
 
 # package_data values are glob patterns relative to each specific subpackage.
 package_data = {

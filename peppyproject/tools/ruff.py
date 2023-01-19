@@ -30,7 +30,7 @@ class RuffTable(ToolTable):
         "ignore-init-module-imports": bool,
         "line-length": int,
         "namespace-packages": list[str],
-        "per-file-ignores": list[str],
+        "per-file-ignores": dict[str, list[str]],
         "required-version": str,
         "respect-gitignore": bool,
         "select": list[str],

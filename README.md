@@ -24,5 +24,5 @@ a `setup.py` file.
 from peppyproject import PyProjectConfiguration
 
 configuration = PyProjectConfiguration.from_directory('./my_python_project')
-configuration.to_toml('new-pyproject.toml')
+configuration.to_file('new-pyproject.toml')
 ```

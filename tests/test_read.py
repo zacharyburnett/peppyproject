@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from peppyproject.files import read_python_file, read_setup_py
+from peppyproject.files import inify_mapping, read_python_file, read_setup_py
 
 TEST_DIRECTORY = Path(__file__).parent / "data"
 
@@ -201,3 +201,9 @@ def test_setup_py():
         },
         "scripts": "scripts/*",
     }
+
+
+def test_nested_inify():
+    value_1 = inify_mapping({"packages": {"find": {"where": ["src"]}}}, name="options")
+
+    assert value_1 == {"options.packages.find": "\nwhere = \n    src"}

@@ -43,12 +43,12 @@ class PyProjectConfiguration(Mapping):
         return self.__tables[table]
 
     @property
-    def toml(self) -> str:
-        return "\n".join(table.toml for table in self.__tables.values())
+    def configuration(self) -> str:
+        return "\n".join(table.configuration for table in self.__tables.values())
 
-    def to_toml(self, filename: str):
-        with open(filename, "w") as toml_file:
-            toml_file.write(self.toml)
+    def to_file(self, filename: str):
+        with open(filename, "w") as configuration_file:
+            configuration_file.write(self.configuration)
 
     def __len__(self) -> int:
         return len(self.__tables)

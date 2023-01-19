@@ -9,7 +9,7 @@ import tomli_w
 import typepigeon
 from ini2toml.api import Translator
 
-from peppyproject.files import SETUP_CFG, inify, read_setup_py
+from peppyproject.files import SETUP_CFG, inify, inify_mapping, read_setup_py
 
 
 class ConfigurationTable(MutableMapping, ABC):
@@ -58,22 +58,43 @@ class ConfigurationTable(MutableMapping, ABC):
                     if section != "DEFAULT":
                         for key, value in setup_py.items():
                             if key in section:
-                                new_section_name, value = inify(
-                                    value=value,
-                                    value_name=key,
-                                    section_name=section_name,
-                                )
-                                if new_section_name not in setup_cfg.sections():
-                                    setup_cfg.add_section(new_section_name)
                                 if not isinstance(value, Mapping):
-                                    setup_cfg.set(new_section_name, key, value)
+                                    value = inify(value=value)
+                                    if section_name not in setup_cfg.sections():
+                                        setup_cfg.add_section(section_name)
+                                    setup_cfg.set(section_name, key, value)
                                 else:
-                                    for entry_name, entry in value.items():
-                                        setup_cfg.set(
-                                            new_section_name,
+                                    value = inify_mapping(
+                                        mapping=value, name=f"{section_name}.{key}"
+                                    )
+                                    for (
+                                        value_section_name,
+                                        value_section,
+                                    ) in value.items():
+                                        if len(value_section) == 0:
+                                            if (
+                                                value_section_name
+                                                == "options.packages.find"
+                                            ):
+                                                value_section["namespaces"] = inify(
+                                                    False
+                                                )
+                                            else:
+                                                continue
+                                        if (
+                                            value_section_name
+                                            not in setup_cfg.sections()
+                                        ):
+                                            setup_cfg.add_section(value_section_name)
+                                        for (
                                             entry_name,
-                                            inify(entry)[1],
-                                        )
+                                            entry,
+                                        ) in value_section.items():
+                                            setup_cfg.set(
+                                                value_section_name,
+                                                entry_name,
+                                                entry,
+                                            )
                 with NamedTemporaryFile() as temporary_file:
                     with open(temporary_file.name, "w") as setup_cfg_file:
                         setup_cfg.write(setup_cfg_file)
@@ -233,12 +254,12 @@ class ConfigurationTable(MutableMapping, ABC):
         )
 
     @property
-    def toml(self) -> str:
+    def configuration(self) -> str:
         return table_to_toml(table_name=self.name, table=self.__configuration)
 
-    def to_toml(self, filename: str):
-        with open(filename, "w") as toml_file:
-            toml_file.write(self.toml)
+    def to_file(self, filename: str):
+        with open(filename, "w") as configuration_file:
+            configuration_file.write(self.configuration)
 
     def __repr__(self) -> str:
         configuration_string = {

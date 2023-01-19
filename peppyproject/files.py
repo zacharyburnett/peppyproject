@@ -4,7 +4,7 @@ import contextlib
 import re
 import warnings
 from pathlib import Path
-from typing import Any, Collection, Mapping
+from typing import Any, Collection, Mapping, Union
 
 SETUP_CFG_INDENT = " " * 4
 SETUP_CFG = {
@@ -38,10 +38,10 @@ PYTHON_LINE = {
 
 
 def python_statement(
-        lines: list[str],
-        index: int = 0,
-        current_statement: str = None,
-        statements: list[str] = None,
+    lines: list[str],
+    index: int = 0,
+    current_statement: str = None,
+    statements: list[str] = None,
 ) -> tuple[list[str], int]:
     if current_statement is None:
         current_statement = ""
@@ -60,8 +60,8 @@ def python_statement(
 
     # check if line continues
     if any(
-            line.endswith(continuing_character)
-            for continuing_character in PYTHON_LINE["continuing"]
+        line.endswith(continuing_character)
+        for continuing_character in PYTHON_LINE["continuing"]
     ):
         statements, index = python_statement(
             lines=lines,
@@ -79,7 +79,7 @@ def python_statement(
         current_statement += line
 
     if any(
-            line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
+        line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
     ) and any(
         statements[-1].endswith(continuing_character)
         for continuing_character in PYTHON_LINE["continuing"]
@@ -92,8 +92,8 @@ def python_statement(
 
 
 def parse_function_parameters(
-        parameter_string: str,
-        variables: dict[str, Any] = None,
+    parameter_string: str,
+    variables: dict[str, Any] = None,
 ) -> dict[str, Any]:
     if variables is None:
         variables = {}
@@ -176,15 +176,15 @@ def read_python_file(filename: str) -> list[str]:
     indices = []
     for index, statement in reversed(list(enumerate(statements))):
         if any(
-                statement.strip().endswith(continuing_character)
-                for continuing_character in PYTHON_LINE["continuing"]
+            statement.strip().endswith(continuing_character)
+            for continuing_character in PYTHON_LINE["continuing"]
         ):
             if index < len(statements) - 1:
                 statements[index] += statements[index + 1]
                 indices.append(index + 1)
         elif any(
-                statement.strip() == ending_character
-                for ending_character in PYTHON_LINE["ending"]
+            statement.strip() == ending_character
+            for ending_character in PYTHON_LINE["ending"]
         ):
             statements[index - 1] += statements[index]
             indices.append(index)
@@ -240,22 +240,29 @@ def read_setup_py(filename: str) -> dict[str, Any]:
     return setup_parameters
 
 
-def inify(
-        value: Any, value_name: str = None, section_name: str = None, indent: str = None
-) -> Any:
+def inify(value: Any, indent: str = None) -> str:
     if indent is None:
-        indent = ""
+        indent = SETUP_CFG_INDENT
     if isinstance(value, Mapping):
-        if value_name is not None and section_name is not None:
-            section_name = f"{section_name}.{value_name}"
-        else:
-            value = "\n" + "\n".join(
-                f'{key}{":" if "find" in value else " ="} {inify(value=entry, indent=indent + SETUP_CFG_INDENT)[1]}'
-                for key, entry in value.items()
-            )
+        value = "\n" + "\n".join(
+            f'{key}{":" if "find" in value else " ="} {inify(value=entry, indent=indent)}'
+            for key, entry in value.items()
+        )
     elif isinstance(value, Collection) and not isinstance(value, str):
         value = "\n" + "\n".join(f"{indent}{entry}" for entry in value)
     else:
         value = str(value)
 
-    return section_name, value
+    return value
+
+
+def inify_mapping(
+    mapping: Mapping[str, Any], name: str, level: int = 0
+) -> dict[str, Union[str, dict[str, str]]]:
+    output = {name: {}}
+    for key, value in mapping.items():
+        if not isinstance(value, Mapping):
+            output[name][key] = inify(value)
+        else:
+            output.update(inify_mapping(value, name=f"{name}.{key}", level=level + 1))
+    return {key: inify(value) if level > 1 else value for key, value in output.items()}

@@ -30,8 +30,8 @@ dynamic = [
 ]
 
 [project.readme]
-file = 'README.md'
-content-type = 'text/markdown'
+file = "README.md"
+content-type = "text/markdown"
 
 [project.license]
 file = "LICENSE"
@@ -127,8 +127,8 @@ doctest_rst = "enabled"
 text_file_format = "rst"
 addopts = "--show-capture=no --open-files --doctest-ignore-import-errors"
 
-[tool.coverage]
-run = { omit = [
+[tool.coverage.run]
+omit = [
     "romancal/regtest/conftest.py",
     "romancal/setup.py",
     "romancal/tests/test*",
@@ -141,12 +141,14 @@ run = { omit = [
     "*/romancal/regtest/test*",
     "*/romancal/*/tests/*",
     "*/docs/*",
-] }
-report = { exclude_lines = [
+]
+
+[tool.coverage.report]
+exclude_lines = [
     "pragma: no cover",
     "if self.debug:",
     "except ImportError",
     "raise AssertionError",
     "raise NotImplementedError",
     "if __name__ == \"__main__\":",
-] }
+]
