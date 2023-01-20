@@ -111,6 +111,8 @@ def parse_function_parameters(
             parameter_index += 1
     for parameter in parameters:
         name, value = parameter.strip().split("=", 1)
+        name = name.strip()
+        value = value.strip()
         if "open(" in value:
             value = re.findall(r"open\((.+?)\).read\(\)", value)[0]
 
@@ -121,8 +123,11 @@ def parse_function_parameters(
         value = re.sub(r"\]\s*\+\s*\[", ",", value)
         value = re.sub(r"\}\s*\+\s*\*\*\{", ",", value)
 
-        with contextlib.suppress(Exception):
+        try:
             value = ast.literal_eval(value)
+        except:
+            if name == "version":
+                continue
 
         if isinstance(value, str) and "find_packages(" in value:
             value = {

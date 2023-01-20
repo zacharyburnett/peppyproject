@@ -57,7 +57,7 @@ class ConfigurationTable(MutableMapping, ABC):
                 for section_name, section in SETUP_CFG.items():
                     if section != "DEFAULT":
                         for key, value in setup_py.items():
-                            if key in section:
+                            if key.strip() in section:
                                 if not isinstance(value, Mapping):
                                     value = inify(value=value)
                                     if section_name not in setup_cfg.sections():

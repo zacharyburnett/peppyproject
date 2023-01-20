@@ -3,6 +3,7 @@ from typing import Iterator, Mapping
 
 from peppyproject.base import ConfigurationTable
 from peppyproject.tables import BuildConfiguration, ProjectMetadata, ToolsTable
+from peppyproject.tools.base import ToolTable
 
 
 class PyProjectConfiguration(Mapping):
@@ -16,12 +17,16 @@ class PyProjectConfiguration(Mapping):
         build_system: BuildConfiguration = None,
         tool: ToolsTable = None,
     ):
-        if project is None:
+        if project is None or len(project) == 0:
             project = ProjectMetadata()
-        if build_system is None:
-            build_system = BuildConfiguration()
-        if tool is None:
+        if tool is None or len(tool) == 0:
             tool = ToolsTable()
+        if build_system is None or len(build_system) == 0:
+            build_system = BuildConfiguration.default_setuptools()
+            if "version" in project["dynamic"]:
+                build_system["requires"].append("setuptools_scm[toml]>=3.4")
+            if "setuptools_scm" not in tool:
+                tool["setuptools_scm"] = ToolTable()
         self.__tables = {
             "project": project,
             "build-system": build_system,

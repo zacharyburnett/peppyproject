@@ -150,6 +150,21 @@ class BuildConfiguration(ConfigurationTable):
         "build-backend": str,
     }
 
+    @classmethod
+    def default_setuptools(cls):
+        configuration = cls()
+
+        if configuration["build-backend"] is None:
+            configuration["build-backend"] = "setuptools.build_meta"
+        if configuration["requires"] is None or len(configuration["requires"]) == 0:
+            configuration["requires"] = ["setuptools>=61.2", "wheel"]
+        elif not any(
+            "setuptools" in requirement for requirement in configuration["requires"]
+        ):
+            configuration["requires"].append("setuptools>=61.2")
+
+        return configuration
+
 
 class ToolsTable(ConfigurationTable):
     """
