@@ -179,7 +179,8 @@ def read_python_file(filename: str) -> list[str]:
     statements = [statement for statement in statements if len(statement) > 0]
 
     indices = []
-    for index, statement in reversed(list(enumerate(statements))):
+    for index in reversed(range(len(statements))):
+        statement = statements[index]
         if any(
             statement.strip().endswith(continuing_character)
             for continuing_character in PYTHON_LINE["continuing"]
@@ -188,10 +189,10 @@ def read_python_file(filename: str) -> list[str]:
                 statements[index] += statements[index + 1]
                 indices.append(index + 1)
         elif any(
-            statement.strip() == ending_character
+            statement.strip().startswith(ending_character)
             for ending_character in PYTHON_LINE["ending"]
         ):
-            statements[index - 1] += statements[index]
+            statements[index - 1] += statement
             indices.append(index)
 
     for index in indices:

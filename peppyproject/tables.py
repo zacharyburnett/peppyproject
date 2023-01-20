@@ -9,6 +9,7 @@ from peppyproject.tools import CoverageTable, SetuptoolsTable
 from peppyproject.tools.base import ToolTable
 from peppyproject.tools.flake8 import Flake8Table
 from peppyproject.tools.ruff import RuffTable
+from peppyproject.tools.setuptools_scm import SetuptoolsSCMTable
 
 
 class ProjectMetadata(ConfigurationTable):
@@ -174,6 +175,7 @@ class ToolsTable(ConfigurationTable):
     name = "tool"
     fields = {
         "setuptools": SetuptoolsTable,
+        "setuptools_scm": SetuptoolsSCMTable,
         "coverage": CoverageTable,
         "flake8": Flake8Table,
         "ruff": RuffTable,
