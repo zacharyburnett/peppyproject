@@ -1,19 +1,9 @@
 [project]
-name = 'peppyproject'
-description = 'create a PEP621-compliant `pyproject.toml` file from existing build configuration'
-readme = { file = 'README.md', content-type = 'text/markdown' }
-requires-python = '>=3.9'
-license = { file = 'LICENSE' }
-authors = [{ name = 'Zach Burnett' }]
-dependencies = [
-    "ini2toml[full]",
-    "tomli",
-    "tomli-w",
-    "typepigeon>=2.0.1",
-    "typer",
-]
-dynamic = [
-    'version',
+name = "peppyproject"
+description = "create a PEP621-compliant `pyproject.toml` file from existing build configuration"
+requires-python = ">=3.9"
+authors = [
+    { name = "Zach Burnett" },
 ]
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -24,43 +14,66 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
+dependencies = [
+    "ini2toml[full]",
+    "tomli",
+    "tomli-w",
+    "typepigeon>=2.0.1",
+    "typer",
+]
+dynamic = [
+    "version",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+file = "LICENSE"
+content-type = "text/plain"
+
+[project.urls]
+repository = "https://github.com/zacharyburnett/peppyproject"
+
+[project.scripts]
+peppyproject = "peppyproject.__main__:main"
 
 [project.optional-dependencies]
 test = [
-    'pytest',
-    'tomli',
+    "pytest",
+    "tomli",
 ]
-
-[project.urls]
-'repository' = 'https://github.com/zacharyburnett/peppyproject'
-
-[project.scripts]
-peppyproject = 'peppyproject.__main__:main'
 
 [build-system]
 requires = [
-    'setuptools >=61',
-    'setuptools_scm[toml] >=3.4',
-    'wheel',
+    "setuptools >=61",
+    "setuptools_scm[toml] >=3.4",
+    "wheel",
 ]
-build-backend = 'setuptools.build_meta'
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
 [tool.ruff]
-line-length = 127
-extend-ignore = [
-    'E722', # Do not use bare `except`
-]
 extend-exclude = [
-    'build',
-    'docs',
-    '.eggs',
-    '.tox',
-    'venv',
-    'tests/data',
+    "build",
+    "docs",
+    ".eggs",
+    ".tox",
+    "venv",
+    "tests/data",
+]
+extend-ignore = [
+    "E722",
+]
+line-length = 127
+
+[tool.coverage.run]
+branch = true
+source = [
+    "peppyproject",
 ]
 
-[tool.coverage]
-run = { branch = true, source = ['peppyproject'] }
-report = { show_missing = true }
+[tool.coverage.report]
+show_missing = true
