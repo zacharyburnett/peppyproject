@@ -1,4 +1,3 @@
-import ast
 from abc import ABC
 from configparser import ConfigParser
 from pathlib import Path
@@ -106,48 +105,39 @@ class ConfigurationTable(MutableMapping, ABC):
             )
             file_configuration = tomli.loads(toml_string)
             if "project" in file_configuration:
-                if "homepage" in file_configuration["project"]:
-                    if "urls" not in file_configuration["project"]:
-                        file_configuration["project"]["urls"] = ConfigurationSubTable()
-                    file_configuration["project"]["urls"][
-                        "homepage"
-                    ] = file_configuration["project"]["homepage"]
-                    del file_configuration["project"]["homepage"]
-            if (
-                "tool" in file_configuration
-                and "setuptools" in file_configuration["tool"]
-            ):
-                if "packages" in file_configuration["tool"]["setuptools"]:
-                    if "find" in file_configuration["tool"]["setuptools"]["packages"]:
-                        if (
-                            "namespaces"
-                            in file_configuration["tool"]["setuptools"]["packages"][
-                                "find"
-                            ]
-                        ):
-                            file_configuration["tool"]["setuptools"]["packages"][
-                                "find"
-                            ]["namespaces"] = ast.literal_eval(
-                                file_configuration["tool"]["setuptools"]["packages"][
-                                    "find"
-                                ]["namespaces"]
-                            )
-                if setup_py is not None:
-                    if "extras-require" in file_configuration["tool"]["setuptools"]:
-                        if "project" not in file_configuration:
-                            file_configuration["project"] = ConfigurationSubTable()
-                        file_configuration["project"][
-                            "optional-dependencies"
-                        ] = setup_py["extras_require"]
-                        del file_configuration["tool"]["setuptools"]["extras-require"]
-                    if "package-data" in file_configuration["tool"]["setuptools"]:
-                        if "project" not in file_configuration:
-                            file_configuration["tool"][
-                                "setuptools"
-                            ] = ConfigurationSubTable()
-                        file_configuration["tool"]["setuptools"][
-                            "package-data"
-                        ] = setup_py["package_data"]
+                project_table = file_configuration["project"]
+                if "homepage" in project_table:
+                    if "urls" not in project_table:
+                        project_table["urls"] = ConfigurationSubTable()
+                    project_table["urls"]["homepage"] = project_table["homepage"]
+                    del project_table["homepage"]
+                file_configuration["project"] = project_table
+            if "tool" in file_configuration:
+                tool_table = file_configuration["tool"]
+                if "setuptools" in tool_table:
+                    setuptools_table = tool_table["setuptools"]
+                    if "packages" in setuptools_table:
+                        packages_table = setuptools_table["packages"]
+                        if "find" in packages_table:
+                            if "namespaces" in packages_table["find"]:
+                                packages_table["find"]["namespaces"] = (
+                                    packages_table["find"]["namespaces"] == "True"
+                                )
+                        setuptools_table["packages"] = packages_table
+                    if setup_py is not None:
+                        if "extras-require" in setuptools_table:
+                            if "project" not in file_configuration:
+                                file_configuration["project"] = ConfigurationSubTable()
+                            file_configuration["project"][
+                                "optional-dependencies"
+                            ] = setup_py["extras_require"]
+                            del setuptools_table["extras-require"]
+                        if "package-data" in setuptools_table:
+                            if "project" not in file_configuration:
+                                setuptools_table = ConfigurationSubTable()
+                            setuptools_table["package-data"] = setup_py["package_data"]
+                    tool_table["setuptools"] = setuptools_table
+                file_configuration["tool"] = tool_table
             base_table = cls.name.split(".", 1)[0]
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
