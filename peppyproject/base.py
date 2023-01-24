@@ -1,8 +1,9 @@
 from abc import ABC
 from configparser import ConfigParser
+from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterator, Mapping, MutableMapping, Union
+from typing import Any, Collection, Iterator, Mapping, MutableMapping, Union
 
 import tomli
 import tomli_w
@@ -256,9 +257,14 @@ class ConfigurationTable(MutableMapping, ABC):
     @property
     def __toml(self) -> dict[str, Union[str, dict]]:
         return {
-            key: str(value)
-            if not isinstance(value, ConfigurationTable)
-            else value.__toml
+            key: value.__toml
+            if isinstance(value, ConfigurationTable)
+            else str(value)
+            if not isinstance(
+                value,
+                (str, int, float, bool, datetime, Collection, Mapping),
+            )
+            else value
             for key, value in self.__configuration.items()
             if value is not None
         }
