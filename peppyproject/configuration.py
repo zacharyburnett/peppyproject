@@ -23,7 +23,7 @@ class PyProjectConfiguration(Mapping):
             tool = ToolsTable()
         if build_system is None or len(build_system) == 0:
             build_system = BuildConfiguration.default_setuptools()
-        if "version" in project["dynamic"]:
+        if project["dynamic"] is not None and "version" in project["dynamic"]:
             if not any(
                 "setuptools_scm" in requirement
                 for requirement in build_system["requires"]

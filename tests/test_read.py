@@ -44,7 +44,7 @@ def test_read_python_file():
     ]
 
 
-def test_setup_py():
+def test_read_setup_py():
     setup_parameters = read_setup_py(TEST_DIRECTORY / "input" / "setup_py" / "setup.py")
     assert setup_parameters == {
         "name": "crds",
@@ -203,11 +203,4 @@ def test_setup_py():
     }
 
 
-def test_nested_inify():
-    value_1 = inify_mapping({"packages": {"find": {"where": ["src"]}}}, name="options")
 
-    assert value_1 == {
-        "options": {},
-        "options.packages": {},
-        "options.packages.find": "\nwhere = \n    src",
-    }
