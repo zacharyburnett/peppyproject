@@ -2,7 +2,7 @@ from abc import ABC
 from configparser import ConfigParser
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterator, Mapping, MutableMapping
+from typing import Any, Iterator, Mapping, MutableMapping, Union
 
 import tomli
 import tomli_w
@@ -254,8 +254,18 @@ class ConfigurationTable(MutableMapping, ABC):
         )
 
     @property
+    def __toml(self) -> dict[str, Union[str, dict]]:
+        return {
+            key: str(value)
+            if not isinstance(value, ConfigurationTable)
+            else value.__toml
+            for key, value in self.__configuration.items()
+            if value is not None
+        }
+
+    @property
     def configuration(self) -> str:
-        return table_to_toml(table_name=self.name, table=self.__configuration)
+        return tomli_w.dumps(to_dict({self.name: self.__toml}))
 
     def to_file(self, filename: str):
         with open(filename, "w") as configuration_file:
@@ -293,10 +303,3 @@ def to_dict(value: Mapping) -> dict:
     else:
         output = value
     return output
-
-
-def table_to_toml(table_name: str, table: MutableMapping[str, Any]) -> str:
-    table = {
-        table_name: {key: value for key, value in table.items() if value is not None},
-    }
-    return tomli_w.dumps(to_dict(table))

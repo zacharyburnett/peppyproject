@@ -2,9 +2,10 @@ import warnings
 from pathlib import Path
 from typing import Any, Mapping, Union
 
+import tomli_w
 import typepigeon
 
-from peppyproject.base import ConfigurationTable, table_to_toml
+from peppyproject.base import ConfigurationTable, to_dict
 from peppyproject.tools import CoverageTable, SetuptoolsTable
 from peppyproject.tools.base import ToolTable
 from peppyproject.tools.flake8 import Flake8Table
@@ -210,10 +211,10 @@ class ToolsTable(ConfigurationTable):
 
     @property
     def configuration(self) -> str:
-        tables = self._ConfigurationTable__configuration
+        tables = self._ConfigurationTable__toml
         for table_name, table in tables.items():
             if isinstance(table, ConfigurationTable):
                 tables[table_name] = {
                     key: value for key, value in table.items() if value is not None
                 }
-        return table_to_toml(table_name="tool", table=tables)
+        return tomli_w.dumps(to_dict({"tool": tables}))
