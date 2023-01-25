@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from peppyproject.files import inify_mapping, read_python_file, read_setup_py
+from peppyproject.files import read_python_file, read_setup_py
 
 TEST_DIRECTORY = Path(__file__).parent / "data"
 
