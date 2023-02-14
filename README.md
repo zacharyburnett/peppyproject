@@ -11,15 +11,11 @@ configuration (`setup.cfg`, `setup.py`, `tox.ini`, `pytest.ini`, etc.).
 
 ### Installation
 
-```commandline
+```shell
 pip install peppyproject
 ```
 
 ### Usage
-
-```shell
-peppyproject ./my_python_project --output ./my_python_project/pyproject.toml
-```
 
 ```
 Usage: peppyproject [OPTIONS] [DIRECTORY]
@@ -37,11 +33,12 @@ Options:
 ### API
 
 `peppyproject` uses `ini2toml[full]` to read `setup.cfg` and INI files, and `ast.literal_eval()` to read and parse
-a `setup.py` file.
+a `setup.py` file. It assumes you have vetted the ``setup.py`` and does not perform any sanitization or safety checking;
+thus, it is inadvisable to use on unknown or potentially malicious ``setup.py`` scripts.
 
 ```python
 from peppyproject import PyProjectConfiguration
 
 configuration = PyProjectConfiguration.from_directory('./my_python_project')
-configuration.to_file('new-pyproject.toml')
+configuration.to_file('./my_python_project/pyproject.toml')
 ```
