@@ -22,12 +22,12 @@ peppyproject ./my_python_project --output ./my_python_project/pyproject.toml
 ```
 
 ```
-Usage: peppyproject [OPTIONS] [INPUT_DIRECTORY]
+Usage: peppyproject [OPTIONS] [DIRECTORY]
 
   read a Python project configuration and output a PEP621-compliant `pyproject.toml`
 
 Arguments:
-  [INPUT_DIRECTORY]  directory from which to read configuration
+  [DIRECTORY]  directory from which to read configuration
 
 Options:
   -o, --output PATH  path to which to write TOML

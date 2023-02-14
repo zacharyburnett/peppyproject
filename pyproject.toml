@@ -37,7 +37,7 @@ content-type = "text/plain"
 repository = "https://github.com/zacharyburnett/peppyproject"
 
 [project.scripts]
-peppyproject = "peppyproject.__main__:main"
+peppyproject = "peppyproject.__main__:app"
 
 [project.optional-dependencies]
 test = [

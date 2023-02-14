@@ -20,6 +20,6 @@ def test_configuration():
     assert len(configuration) == 3
 
     with pytest.raises(KeyError):
-        configuration['nonexistent_table']
+        configuration["nonexistent_table"]
 
-    assert configuration['project']['dynamic'] is None
+    assert configuration["project"]["dynamic"] is None

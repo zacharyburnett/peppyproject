@@ -201,6 +201,3 @@ def test_read_setup_py():
         },
         "scripts": "scripts/*",
     }
-
-
-
