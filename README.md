@@ -1,10 +1,13 @@
 # `peppyproject`
 
+[![build](https://github.com/zacharyburnett/peppyproject/actions/workflows/build.yml/badge.svg)](https://github.com/zacharyburnett/peppyproject/actions/workflows/build.yml)
 [![pypi](https://img.shields.io/pypi/v/peppyproject)](https://pypi.org/project/peppyproject)
 [![implementation](https://img.shields.io/pypi/implementation/peppyproject)](https://pypi.org/project/peppyproject)
 [![python](https://img.shields.io/pypi/pyversions/peppyproject)](https://pypi.org/project/peppyproject)
 [![tests](https://github.com/zacharyburnett/peppyproject/actions/workflows/tests.yml/badge.svg)](https://github.com/zacharyburnett/peppyproject/actions/workflows/tests.yml)
-[![build](https://github.com/zacharyburnett/peppyproject/actions/workflows/build.yml/badge.svg)](https://github.com/zacharyburnett/peppyproject/actions/workflows/build.yml)
+[![codecov](https://codecov.io/github/zacharyburnett/peppyproject/branch/main/graph/badge.svg?token=AJ6SZMOP2N)](https://codecov.io/github/zacharyburnett/peppyproject)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 `peppyproject` creates a PEP621-compliant `pyproject.toml` file from an existing Python project's build
 configuration (`setup.cfg`, `setup.py`, `tox.ini`, `pytest.ini`, etc.).
