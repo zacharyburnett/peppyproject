@@ -21,6 +21,10 @@ pip install peppyproject
 ### Usage
 
 ```
+peppyproject . -o pyproject.toml
+```
+
+```
 Usage: peppyproject [OPTIONS] [DIRECTORY]
 
   read a Python project configuration and output a PEP621-compliant `pyproject.toml`
