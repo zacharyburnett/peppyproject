@@ -242,9 +242,7 @@ doctest_plus = "enabled"
 doctest_rst = "enabled"
 addopts = "--show-capture=no --open-files --report-crds-context"
 filterwarnings = [
-    "ignore:Models",
-    "in",
-    "math_functions:astropy.utils.exceptions.AstropyUserWarning",
+    "ignore:Models in math_functions:astropy.utils.exceptions.AstropyUserWarning",
 ]
 
 [tool.coverage.run]
