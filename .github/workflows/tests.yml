@@ -15,14 +15,11 @@ jobs:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       envs: |
-        - linux: test-parallel
-          python-version: 3.9
-        - linux: test-parallel
-          python-version: 3.10
-        - linux: test-parallel
-          python-version: 3.11
-        - macos: test-parallel
-          python-version: 3.11
-        - linux: test-cov-parallel
+        - linux: py39-parallel
+        - linux: py310-parallel
+        - linux: py311-parallel
+        - linux: py3-parallel
+        - macos: py3-parallel
+        - linux: py3-cov-parallel
           coverage: codecov
           pytest-results-summary: true
