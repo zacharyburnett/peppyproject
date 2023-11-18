@@ -2,23 +2,14 @@ name: build
 
 on:
   release:
-    types:
-      - published
+    types: [ released ]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  publish:
-    name: publish package to PyPI
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-          cache: 'pip'
-          cache-dependency-path: 'pyproject.toml'
-      - run: pip install tox
-      - run: tox -e build-dist
-      - uses: pypa/gh-action-pypi-publish@v1.6.4
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
+  build:
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
+    with:
+      upload_to_pypi: ${{ (github.event_name == 'release') && (github.event.action == 'released') }}
+    secrets:
+      pypi_token: ${{ secrets.PYPI_TOKEN }}
