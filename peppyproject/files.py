@@ -1,10 +1,13 @@
 # https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#compatibility-with-other-tools
+from __future__ import annotations
+
 import ast
 import contextlib
 import re
 import warnings
+from collections.abc import Collection, Mapping
 from pathlib import Path
-from typing import Any, Collection, Mapping, Union
+from typing import Any
 
 SETUP_CFG_INDENT = " " * 4
 SETUP_CFG = {
@@ -40,8 +43,8 @@ PYTHON_LINE = {
 def python_statement(
     lines: list[str],
     index: int = 0,
-    current_statement: str = None,
-    statements: list[str] = None,
+    current_statement: str | None = None,
+    statements: list[str] | None = None,
 ) -> tuple[list[str], int]:
     if current_statement is None:
         current_statement = ""
@@ -59,10 +62,7 @@ def python_statement(
     index += 1
 
     # check if line continues
-    if any(
-        line.endswith(continuing_character)
-        for continuing_character in PYTHON_LINE["continuing"]
-    ):
+    if any(line.endswith(continuing_character) for continuing_character in PYTHON_LINE["continuing"]):
         statements, index = python_statement(
             lines=lines,
             index=index,
@@ -78,11 +78,8 @@ def python_statement(
     else:
         current_statement += line
 
-    if any(
-        line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]
-    ) and any(
-        statements[-1].endswith(continuing_character)
-        for continuing_character in PYTHON_LINE["continuing"]
+    if any(line.endswith(ending_character) for ending_character in PYTHON_LINE["ending"]) and any(
+        statements[-1].endswith(continuing_character) for continuing_character in PYTHON_LINE["continuing"]
     ):
         statements[-1] += current_statement
     else:
@@ -93,7 +90,7 @@ def python_statement(
 
 def parse_function_parameters(
     parameter_string: str,
-    variables: dict[str, Any] = None,
+    variables: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if variables is None:
         variables = {}
@@ -105,7 +102,7 @@ def parse_function_parameters(
     parameter_index = 0
     while parameter_index < len(parameters):
         parameter = parameters[parameter_index].strip()
-        if parameter.startswith('"') or parameter.startswith("'"):
+        if parameter.startswith(('"', "'")):
             parameters[parameter_index - 1] += parameters.pop(parameter_index)
         else:
             parameter_index += 1
@@ -181,17 +178,11 @@ def read_python_file(filename: str) -> list[str]:
     indices = []
     for index in reversed(range(len(statements))):
         statement = statements[index]
-        if any(
-            statement.strip().endswith(continuing_character)
-            for continuing_character in PYTHON_LINE["continuing"]
-        ):
+        if any(statement.strip().endswith(continuing_character) for continuing_character in PYTHON_LINE["continuing"]):
             if index < len(statements) - 1:
                 statements[index] += statements[index + 1]
                 indices.append(index + 1)
-        elif any(
-            statement.strip().startswith(ending_character)
-            for ending_character in PYTHON_LINE["ending"]
-        ):
+        elif any(statement.strip().startswith(ending_character) for ending_character in PYTHON_LINE["ending"]):
             statements[index - 1] += statement
             indices.append(index)
 
@@ -205,11 +196,7 @@ def read_setup_py(filename: str) -> dict[str, Any]:
     statements = read_python_file(filename)
 
     setup_parameters = {}
-    setup_calls = {
-        index: statement
-        for index, statement in enumerate(statements)
-        if "setup(" in statement
-    }
+    setup_calls = {index: statement for index, statement in enumerate(statements) if "setup(" in statement}
 
     if len(setup_calls) > 0:
         if len(setup_calls) > 1:
@@ -239,20 +226,17 @@ def read_setup_py(filename: str) -> dict[str, Any]:
     for parameter in list(setup_parameters):
         value = setup_parameters[parameter]
         if isinstance(value, Mapping) and any(key == "" for key in value):
-            setup_parameters[parameter] = {
-                key if key != "" else "*": entry for key, entry in value.items()
-            }
+            setup_parameters[parameter] = {key if key != "" else "*": entry for key, entry in value.items()}
 
     return setup_parameters
 
 
-def inify(value: Any, indent: str = None) -> str:
+def inify(value: Any, indent: str | None = None) -> str:
     if indent is None:
         indent = SETUP_CFG_INDENT
     if isinstance(value, Mapping):
         value = "\n" + "\n".join(
-            f'{key}{":" if "find" in value else " ="} {inify(value=entry, indent=indent)}'
-            for key, entry in value.items()
+            f'{key}{":" if "find" in value else " ="} {inify(value=entry, indent=indent)}' for key, entry in value.items()
         )
     elif isinstance(value, Collection) and not isinstance(value, str):
         value = "\n" + "\n".join(f"{indent}{entry}" for entry in value)
@@ -262,9 +246,7 @@ def inify(value: Any, indent: str = None) -> str:
     return value
 
 
-def inify_mapping(
-    mapping: Mapping[str, Any], name: str, level: int = 0
-) -> dict[str, Union[str, dict[str, str]]]:
+def inify_mapping(mapping: Mapping[str, Any], name: str, level: int = 0) -> dict[str, str | dict[str, str]]:
     output = {name: {}}
     for key, value in mapping.items():
         if not isinstance(value, Mapping):

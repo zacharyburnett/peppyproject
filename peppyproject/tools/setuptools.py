@@ -4,9 +4,8 @@ from peppyproject.tools.base import ToolTable
 
 
 class SetuptoolsTable(ToolTable):
-    """
-    ``setuptools`` configuration
-    https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#setuptools-specific-configuration
+    """``setuptools`` configuration
+    https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#setuptools-specific-configuration.
     """
 
     name = "tool.setuptools"

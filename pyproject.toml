@@ -65,9 +65,9 @@ extend-select = [
     'D',      # pydocstyle (docstring style guide)
     'UP',     # pyupgrade (upgrade code to modern python)
     'YTT',    # flake8-2020 (system version info)
-    'ANN',    # flake8-annotations (best practices for type annotations)
+    #'ANN',    # flake8-annotations (best practices for type annotations)
     'S',      # flake8-bandit (security checks)
-    'BLE',    # flake8-blind-except (prevent blind except statements)
+    #'BLE',    # flake8-blind-except (prevent blind except statements)
     'B',      # flake8-bugbear (prevent common gotcha bugs)
     'A',      # flake8-builtins (prevent shadowing of builtins)
     'C4',     # flake8-comprehensions (best practices for comprehensions)
@@ -84,9 +84,9 @@ extend-select = [
     'Q',      # flake8-quotes (best practices for quotes)
     'RSE',    # flake8-raise (best practices for raising exceptions)
     'RET',    # flake8-return (best practices for return statements)
-    'SLF',    # flake8-self (prevent private member access)
+    #'SLF',    # flake8-self (prevent private member access)
     'SLOT',   # flake8-slots (require __slots__ for immutable classes)
-    'SIM',    # flake8-simplify (suggest simplifications to code where possible)
+    #'SIM',    # flake8-simplify (suggest simplifications to code where possible)
     'TID',    # flake8-tidy-imports (prevent banned api and best import practices)
     'TCH',    # flake8-type-checking (move type checking imports into type checking blocks)
     'INT',    # flake8-gettext (when to use printf style strings)
@@ -103,11 +103,21 @@ extend-select = [
     'RUF',    # ruff specific checks
 ]
 ignore = [
+    'PERF203', # `try`-`except` within a loop incurs performance overhead
+    'B008',
+    'B028',
+    'PLW2901', # `for` loop variable overwritten by assignment target
+    'PTH123', # use `Path.open()` instead of `open()`
     'ISC001', # interferes with formatter
     'PLR0912', # Too many branches
     'PLR0913', # Too many arguments
     'PLR0915', # Too many statements
     'PLR2004', # Magic value used in comparison
+    'E722', # Do not use bare `except`
+
+    'S101', # use of `assert` detected
+    'INP001', # part of an implicit namespace package. Add an `__init__.py`.
+    'RUF012', # mutable class variable
 
     # Pydocstyle (to fix over time
     'D100', # Undocumented public module
@@ -115,6 +125,8 @@ ignore = [
     'D102', # Undocumented public method
     'D103', # Undocumented public function
     'D104', # Undocumented public package
+    'D105', # Undocumented magic function
+    'D107', # Missing docstring in `__init__`
     'D205', # 1 blank line required between summary line and description
     'D401', # First line of docstring should be in imperative mood
     'D404', # First word of docstring should not be This

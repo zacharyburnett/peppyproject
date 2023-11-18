@@ -1,22 +1,24 @@
 import warnings
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import tomli_w
 import typepigeon
 
 from peppyproject.base import ConfigurationTable, to_dict
 from peppyproject.tools import CoverageTable, SetuptoolsTable
-from peppyproject.tools.base import ToolTable
 from peppyproject.tools.flake8 import Flake8Table
 from peppyproject.tools.ruff import RuffTable
 from peppyproject.tools.setuptools_scm import SetuptoolsSCMTable
 
+if TYPE_CHECKING:
+    from peppyproject.tools.base import ToolTable
+
 
 class ProjectMetadata(ConfigurationTable):
-    """
-    PEP621 project metadata configuration
-    https://peps.python.org/pep-0621/#table-name
+    """PEP621 project metadata configuration
+    https://peps.python.org/pep-0621/#table-name.
     """
 
     name = "project"
@@ -39,11 +41,9 @@ class ProjectMetadata(ConfigurationTable):
         "dynamic": list[str],
     }
 
-    def __setitem__(self, key: str, value: Any):
+    def __setitem__(self, key: str, value: Any) -> None:
         directory = Path(
-            self._ConfigurationTable__from_directory
-            if hasattr(self, "_ConfigurationTable__from_directory")
-            else ".",
+            self._ConfigurationTable__from_directory if hasattr(self, "_ConfigurationTable__from_directory") else ".",
         )
         filenames = [filename.name for filename in directory.iterdir()]
         if value is not None:
@@ -67,39 +67,23 @@ class ProjectMetadata(ConfigurationTable):
                 if isinstance(value, str) and value in filenames:
                     license_filename = value
                 else:
-                    license_files = [
-                        filename
-                        for filename in filenames
-                        if "license" in filename.lower()
-                    ]
+                    license_files = [filename for filename in filenames if "license" in filename.lower()]
                     if len(license_files) > 0:
                         if len(license_files) > 1:
                             warnings.warn(
                                 f"multiple license files found; {license_files}",
                             )
                         license_filename = license_files[0]
-                value = (
-                    {"file": license_filename, "content-type": "text/plain"}
-                    if license_filename is not None
-                    else None
-                )
+                value = {"file": license_filename, "content-type": "text/plain"} if license_filename is not None else None
             elif key == "readme":
                 if isinstance(value, Mapping) and "text" in value:
                     value = value["text"]
                 if isinstance(value, str):
                     if value in filenames:
-                        content_type = (
-                            "text/markdown"
-                            if Path(value).suffix.lower() == ".md"
-                            else "text/x-rst"
-                        )
+                        content_type = "text/markdown" if Path(value).suffix.lower() == ".md" else "text/x-rst"
                         value = {"file": value, "content-type": content_type}
                     else:
-                        readme_files = [
-                            filename
-                            for filename in filenames
-                            if "readme" in filename.lower()
-                        ]
+                        readme_files = [filename for filename in filenames if "readme" in filename.lower()]
                         if len(readme_files) > 0:
                             if len(readme_files) > 1:
                                 warnings.warn(
@@ -133,17 +117,14 @@ class ProjectMetadata(ConfigurationTable):
                                 for entry_point in entry_points.splitlines()
                                 if len(entry_point) > 0
                             ]
-                            value[entry_point_location] = {
-                                key: value for key, value in entry_points
-                            }
+                            value[entry_point_location] = dict(entry_points)
 
         super().__setitem__(key, value)
 
 
 class BuildConfiguration(ConfigurationTable):
-    """
-    PEP517 build system configuration
-    https://peps.python.org/pep-0517/#source-trees
+    """PEP517 build system configuration
+    https://peps.python.org/pep-0517/#source-trees.
     """
 
     name = "build-system"
@@ -160,18 +141,14 @@ class BuildConfiguration(ConfigurationTable):
             configuration["build-backend"] = "setuptools.build_meta"
         if configuration["requires"] is None or len(configuration["requires"]) == 0:
             configuration["requires"] = ["setuptools>=61.2", "wheel"]
-        elif not any(
-            "setuptools" in requirement for requirement in configuration["requires"]
-        ):
+        elif not any("setuptools" in requirement for requirement in configuration["requires"]):
             configuration["requires"].append("setuptools>=61.2")
 
         return configuration
 
 
 class ToolsTable(ConfigurationTable):
-    """
-    abstraction of the top-level ``[tool]`` table in ``pyproject.toml``
-    """
+    """abstraction of the top-level ``[tool]`` table in ``pyproject.toml``."""
 
     name = "tool"
     fields = {
@@ -183,15 +160,11 @@ class ToolsTable(ConfigurationTable):
     }
     start_with_placeholders = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def __setitem__(self, table_name: str, table: "ToolTable"):
-        if (
-            table_name in self.fields
-            and self.fields[table_name] is not None
-            and table is not None
-        ):
+    def __setitem__(self, table_name: str, table: "ToolTable") -> None:
+        if table_name in self.fields and self.fields[table_name] is not None and table is not None:
             configuration = self.fields[table_name]()
             configuration.update(table)
             table = configuration
@@ -200,11 +173,7 @@ class ToolsTable(ConfigurationTable):
     def update(self, items: Mapping):
         for key, value in items.items():
             if value is not None:
-                if (
-                    key in self
-                    and isinstance(self[key], Mapping)
-                    and isinstance(value, Mapping)
-                ):
+                if key in self and isinstance(self[key], Mapping) and isinstance(value, Mapping):
                     self[key].update(value)
                 else:
                     self[key] = value
@@ -214,7 +183,5 @@ class ToolsTable(ConfigurationTable):
         tables = self._ConfigurationTable__toml
         for table_name, table in tables.items():
             if isinstance(table, ConfigurationTable):
-                tables[table_name] = {
-                    key: value for key, value in table.items() if value is not None
-                }
+                tables[table_name] = {key: value for key, value in table.items() if value is not None}
         return tomli_w.dumps(to_dict({"tool": tables}))

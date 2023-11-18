@@ -4,9 +4,8 @@ from peppyproject.tools.base import ToolTable
 
 
 class RuffTable(ToolTable):
-    """
-    ``ruff`` configuration
-    https://github.com/charliermarsh/ruff#reference
+    """``ruff`` configuration
+    https://github.com/charliermarsh/ruff#reference.
     """
 
     name = "tool.ruff"

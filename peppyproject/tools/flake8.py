@@ -2,9 +2,8 @@ from peppyproject.tools.base import ToolTable
 
 
 class Flake8Table(ToolTable):
-    """
-    ``flake8`` configuration
-    https://flake8.pycqa.org/en/latest/user/options.html#options-and-their-descriptions
+    """``flake8`` configuration
+    https://flake8.pycqa.org/en/latest/user/options.html#options-and-their-descriptions.
     """
 
     name = "tool.flake8"

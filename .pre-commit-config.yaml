@@ -34,5 +34,5 @@ repos:
     rev: "v0.1.5"
     hooks:
       - id: ruff
-        args: ["--fix", "--show-fixes"]
+        args: ["--fix", "--show-fixes", "--unsafe-fixes"]
       - id: ruff-format

@@ -1,5 +1,5 @@
+from collections.abc import Iterator, Mapping
 from pathlib import Path
-from typing import Iterator, Mapping
 
 from peppyproject.base import ConfigurationTable
 from peppyproject.tables import BuildConfiguration, ProjectMetadata, ToolsTable
@@ -7,16 +7,14 @@ from peppyproject.tools.setuptools_scm import SetuptoolsSCMTable
 
 
 class PyProjectConfiguration(Mapping):
-    """
-    abstraction of ``pyproject.toml`` configuration
-    """
+    """abstraction of ``pyproject.toml`` configuration."""
 
     def __init__(
         self,
         project: ProjectMetadata = None,
         build_system: BuildConfiguration = None,
         tool: ToolsTable = None,
-    ):
+    ) -> None:
         if project is None or len(project) == 0:
             project = ProjectMetadata()
         if tool is None or len(tool) == 0:
@@ -24,10 +22,7 @@ class PyProjectConfiguration(Mapping):
         if build_system is None or len(build_system) == 0:
             build_system = BuildConfiguration.default_setuptools()
         if project["dynamic"] is not None and "version" in project["dynamic"]:
-            if not any(
-                "setuptools_scm" in requirement
-                for requirement in build_system["requires"]
-            ):
+            if not any("setuptools_scm" in requirement for requirement in build_system["requires"]):
                 build_system["requires"].append("setuptools_scm[toml]>=3.4")
                 if "setuptools_scm" not in tool:
                     tool["setuptools_scm"] = SetuptoolsSCMTable()
@@ -67,7 +62,7 @@ class PyProjectConfiguration(Mapping):
 
     def __repr__(self) -> str:
         tables_string = ", ".join(
-            f"{key}={repr(value)}"
+            f"{key}={value!r}"
             for key, value in self.__tables.items()
             if value is not None and (not hasattr(value, "__len__") or len(value) > 0)
         )
