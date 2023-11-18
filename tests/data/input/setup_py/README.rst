@@ -13,7 +13,7 @@ web sites corresponding to each project (http://hst-crds.stsci.edu or
 https://jwst-crds.stsci.edu/) which record information about reference files
 and provide related services.
 
-CRDS development is occuring at:
+CRDS development is occurring at:
      `Project's github page <https://github.com/spacetelescope/crds>`_.
 
 CRDS is also available for installation as part of ``stenv``:
@@ -49,7 +49,7 @@ File Submission Installation
 For performing the file submission role,  CRDS includes additional dependencies
 and can be trickier to install.
 
-Addding CRDS to an Existing Environment
+Adding CRDS to an Existing Environment
 +++++++++++++++++++++++++++++++++++++++
 
 You can install/upgrade CRDS and it's dependencies in your current environment

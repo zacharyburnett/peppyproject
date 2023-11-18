@@ -9,17 +9,10 @@ app = typer.Typer(add_completion=False)
 
 @app.command()
 def main(
-    directory: Path = typer.Argument(
-        None, help="directory from which to read configuration"
-    ),
-    output_filename: Path = typer.Option(
-        None, "-o", "--output", help="path to which to write TOML"
-    ),
+    directory: Path = typer.Argument(None, help="directory from which to read configuration"),
+    output_filename: Path = typer.Option(None, "-o", "--output", help="path to which to write TOML"),
 ):
-    """
-    read a Python project configuration and output a PEP621-compliant `pyproject.toml`
-    """
-
+    """Read a Python project configuration and output a PEP621-compliant `pyproject.toml`."""
     if directory is None:
         directory = Path.cwd()
 
