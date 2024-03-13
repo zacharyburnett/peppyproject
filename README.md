@@ -20,7 +20,7 @@ pip install peppyproject
 
 ### Usage
 
-> **Warning**
+> [!CAUTION]
 > `peppyproject` uses `ini2toml[full]` to read `setup.cfg` and INI files, and `ast.literal_eval()` to read and parse a `setup.py` file. **It assumes you have vetted the ``setup.py`` and does not perform any sanitization or safety checking; thus, it is inadvisable to use on unknown or potentially malicious ``setup.py`` scripts.**
 
 ```
