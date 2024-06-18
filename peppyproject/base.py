@@ -45,6 +45,7 @@ class ConfigurationTable(MutableMapping, ABC):
             if base_table in file_configuration:
                 configuration.update(file_configuration[base_table])
         elif filename.suffix.lower() in [".cfg", ".ini"] or filename.name.lower() == "setup.py":
+            packages_find = {}
             if filename.suffix.lower() in [".cfg", ".ini"]:
                 with open(filename) as configuration_file:
                     ini_string = configuration_file.read()
@@ -68,11 +69,9 @@ class ConfigurationTable(MutableMapping, ABC):
                                         value_section_name,
                                         value_section,
                                     ) in value.items():
-                                        if len(value_section) == 0:
-                                            if value_section_name == "options.packages.find":
-                                                value_section["namespaces"] = "False"
-                                            else:
-                                                continue
+                                        if value_section_name == "options.packages.find":
+                                            packages_find.update(value_section)
+                                            continue
                                         if value_section_name not in setup_cfg.sections():
                                             setup_cfg.add_section(value_section_name)
                                         for (
@@ -107,11 +106,6 @@ class ConfigurationTable(MutableMapping, ABC):
                 tool_table = file_configuration["tool"]
                 if "setuptools" in tool_table:
                     setuptools_table = tool_table["setuptools"]
-                    if "packages" in setuptools_table:
-                        packages_table = setuptools_table["packages"]
-                        if "find" in packages_table and "namespaces" in packages_table["find"]:
-                            packages_table["find"]["namespaces"] = packages_table["find"]["namespaces"] == "True"
-                        setuptools_table["packages"] = packages_table
                     if setup_py is not None:
                         if "extras-require" in setuptools_table:
                             if "project" not in file_configuration:
@@ -122,6 +116,8 @@ class ConfigurationTable(MutableMapping, ABC):
                             if "project" not in file_configuration:
                                 setuptools_table = ConfigurationSubTable()
                             setuptools_table["package-data"] = setup_py["package_data"]
+                        if packages_find is not None and "packages" in setuptools_table:
+                            setuptools_table["packages"]["find"] = packages_find
                     tool_table["setuptools"] = setuptools_table
                 file_configuration["tool"] = tool_table
             base_table = cls.name.split(".", 1)[0]
